@@ -2,12 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --yes-chef-teal : #90d3d6;
+  --yes-chef-teal-light : rgba(175, 234, 237, 0.432);
+  --yes-chef-teal-dark : #74acaf;
+}
+
 html,
 body {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+
 }
 
 *,

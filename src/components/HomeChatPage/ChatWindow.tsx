@@ -90,7 +90,7 @@ export const ChatWindow = () => {
 
   return (
     <div
-      className="w-full h-full bg-inherit rounded-lg py-3 px-2 relative overflow-y-auto"
+      className="w-full h-full bg-inherit rounded-lg py-3 px-2 relative overflow-y-auto mx-10"
       style={{
         boxShadow: `inset 0 0 30px 10px rgba(0, 0, 0, 0.03)`,
       }}

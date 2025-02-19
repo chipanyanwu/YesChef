@@ -13,7 +13,7 @@ function Home() {
       </div>
 
       {/* RENDERED RECIPE SECTION  */}
-      <div className="recipe-section h-screen overflow-y-auto p-10">
+      <div className="recipe-section h-screen overflow-y-auto ml-48 p-10 ">
         <TSXFromStringRender cn="rendered-recipe-content" />
       </div>
     </div>
