@@ -1,4 +1,5 @@
 import { ChatMessage } from "@/types/chat-entry"
+import * as React from "react"
 import { createContext, ReactNode, useContext, useState } from "react"
 
 const exampleText = `
@@ -46,6 +47,9 @@ interface RecipeContextType {
   updateRecipe: (newRecipe: string) => void
   chatHistory: ChatMessage[]
   setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>
+  pushChat : Function
+  generationState : boolean
+  setGenerationState : Function
 }
 
 const RecipeContext = createContext<RecipeContextType>({
@@ -54,20 +58,32 @@ const RecipeContext = createContext<RecipeContextType>({
   updateRecipe: () => {},
   chatHistory: [],
   setChatHistory: () => {},
+  pushChat: () => {},
+  generationState : false,
+  setGenerationState : () => {},
 })
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useRecipe = () => useContext(RecipeContext)
 
 export const RecipeProvider = ({ children }: { children: ReactNode }) => {
-  const [rawRecipe, setRawRecipe] = useState(exampleText)
-  const [prevRecipe, setPrevRecipe] = useState("")
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
+  const [rawRecipe, setRawRecipe] = useState(exampleText);
+  const [prevRecipe, setPrevRecipe] = useState("");
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [generationState, setGenerationState] = useState(false); // not currently generating a response
+
 
   function updateRecipe(newRecipe: string) {
     // function to update recipe to preserve a backup if AI gives us garbage
     setPrevRecipe(rawRecipe)
     setRawRecipe(newRecipe)
+  }
+
+  function pushChat(newChat : ChatMessage) {
+    setChatHistory((prev) => {
+      const addition = [...prev, newChat];
+      return addition;
+    })
   }
 
   const value = {
@@ -76,6 +92,9 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
     updateRecipe,
     chatHistory,
     setChatHistory,
+    pushChat,
+    generationState,
+    setGenerationState,
   }
 
   return (

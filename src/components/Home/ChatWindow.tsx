@@ -14,9 +14,8 @@ export const ChatWindow = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const endOfMessagesRef = useRef<HTMLDivElement>(null)
   const [inputContent, setInputContent] = useState("")
-  const [generationState, setGenerationState] = useState(false) // not currently generating a response
   const textAreaMaxHeightPx = 275
-  const { updateRecipe, rawRecipe, chatHistory, setChatHistory } = useRecipe()
+  const { updateRecipe, rawRecipe, chatHistory, setChatHistory, generationState, setGenerationState  } = useRecipe()
 
   const adjustTextAreaHeight = () => {
     if (inputRef.current) {
@@ -90,9 +89,9 @@ export const ChatWindow = () => {
 
   return (
     <div
-      className="w-full h-full bg-inherit rounded-lg py-3 px-2 relative overflow-y-auto"
+      className="w-full h-full bg-white rounded-lg py-3 px-2 relative overflow-y-auto ring-2 ring-black"
       style={{
-        boxShadow: `inset 0 0 30px 10px rgba(0, 0, 0, 0.03)`,
+        boxShadow: `0 0 8px 3px rgba(0, 0, 0, 0.08)`,
       }}
     >
       {/* LOGIC FOR RENDERING DIFFERENT CHATS */}

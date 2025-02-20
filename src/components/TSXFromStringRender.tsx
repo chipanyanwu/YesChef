@@ -45,7 +45,10 @@ export default function TSXFromStringRender({ cn }: Props) {
   // adding a custom classname so we can call it '.rendered-recipe-window' or something and style its parts in globalas
   return (
     <div
-      className={`rendered-text p-5 mt-10 shadow-inner pl-12 rounded-lg bg-gray-50 ${cn}`}
+      className={`rendered-text p-5 m-4 mt-10 pl-12 rounded-lg bg-gray-50 ${cn}`}
+      style={{
+        boxShadow: `0 0 8px 3px rgba(0, 0, 0, 0.08)`,
+      }}
     >
       {parse(changedHtml)}
     </div>

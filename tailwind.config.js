@@ -57,6 +57,7 @@ export default {
 			app_teal : 'var(--yes-chef-teal)',
 			app_teal_dark : 'var(--yes-chef-teal-dark)',
 			app_teal_light : 'var(--yes-chef-teal-light)',
+			app_white : 'var(--yes-chef-white)',
   		}
   	}
   },
