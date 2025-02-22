@@ -18,6 +18,56 @@ export const ChatWindow = () => {
   const textAreaMaxHeightPx = 275
   const { updateRecipe, rawRecipe, chatHistory, setChatHistory, notInit } = useRecipe()
 
+  const [listening, setListening] = useState(false)
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
+
+  useEffect(() => {
+    const SpeechRecognitionConstructor =
+      window.SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognitionConstructor) {
+      recognitionRef.current = new SpeechRecognitionConstructor()
+      recognitionRef.current.continuous = false
+      recognitionRef.current.interimResults = false
+      recognitionRef.current.lang = 'en-US'
+
+      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+        const lastResultIndex = event.results.length - 1
+        const spokenText = event.results[lastResultIndex][0].transcript
+        setInputContent(prev => (prev ? prev + " " : "") + spokenText)
+      }
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Speech recognition error:", event)
+      }
+
+      recognitionRef.current.onend = () => {
+        setListening(false)
+      }
+    } else {
+      console.warn("Speech Recognition API not supported in this browser.")
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort()
+      }
+    }
+  }, [])
+
+  const toggleListening = () => {
+    if (!listening) {
+      if (recognitionRef.current) {
+        setListening(true)
+        recognitionRef.current.start()
+      }
+    } else {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+        setListening(false)
+      }
+    }
+  }
+
   const adjustTextAreaHeight = () => {
     if (inputRef.current) {
       // reset height to auto calculate new height
@@ -165,11 +215,25 @@ export const ChatWindow = () => {
           disabled={generationState}
           onKeyDown={handleKeyDown}
         />
+        
+        <Button
+          variant={"default"}
+          onClick={toggleListening}
+          className="bg-app_teal hover:bg-app_teal_dark h-[60px] w-[15%] object-contain"
+          disabled={generationState}
+        >
+          <img
+            src={listening ? `/vectors/microphone-on.svg` : `/vectors/microphone-off.svg`}
+            className="h-full"
+            alt={listening ? "Microphone On" : "Microphone Off"}
+          />
+        </Button>
 
         <Button
           variant={"default"}
           className="bg-app_teal hover:bg-app_teal_dark h-[60px] w-[15%] object-contain"
           onClick={handleInputSubmit}
+          disabled={generationState}
         >
           <img
             src={`/vectors/chef-hat-and-spatula.svg`}
