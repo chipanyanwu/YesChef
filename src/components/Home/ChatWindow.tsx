@@ -21,69 +21,6 @@ export const ChatWindow = () => {
   const [listening, setListening] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
 
-  useEffect(() => {
-    const SpeechRecognitionConstructor =
-      window.SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (SpeechRecognitionConstructor) {
-      recognitionRef.current = new SpeechRecognitionConstructor()
-      recognitionRef.current.continuous = false
-      recognitionRef.current.interimResults = false
-      recognitionRef.current.lang = 'en-US'
-
-      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
-        const lastResultIndex = event.results.length - 1
-        const spokenText = event.results[lastResultIndex][0].transcript
-        setInputContent(prev => (prev ? prev + " " : "") + spokenText)
-        
-        // after listening to the user, it should automatically submit to the ai
-        console.log(`RESULT OCCURRED : ${spokenText}`);
-        handleInputSubmit();
-      }
-
-      recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech recognition error:", event)
-      }
-
-      recognitionRef.current.onend = () => {
-        setListening(false)
-      }
-    } else {
-      console.warn("Speech Recognition API not supported in this browser.")
-    }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.abort()
-      }
-    }
-  }, [])
-
-  const toggleListening = () => {
-    if (!listening) {
-      if (recognitionRef.current) {
-        setListening(true)
-        recognitionRef.current.start()
-      }
-    } else {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop()
-        setListening(false)
-      }
-    }
-  }
-
-  const adjustTextAreaHeight = () => {
-    if (inputRef.current) {
-      // reset height to auto calculate new height
-      inputRef.current.style.height = "auto"
-
-      // make sure it doesn't go over the max
-      inputRef.current.style.height = `${Math.min(
-        inputRef.current.scrollHeight,
-        textAreaMaxHeightPx
-      )}px`
-    }
-  }
 
   function handleInputChange(curr: string) {
     // controlled component
@@ -91,6 +28,8 @@ export const ChatWindow = () => {
   }
 
   async function handleInputSubmit() {
+
+    // console.log(`call to input submit`);
     if (!inputContent) {
       return
     }
@@ -155,6 +94,76 @@ export const ChatWindow = () => {
 
     updateRecipe(updatedRecipe)
   }
+
+  useEffect(() => {
+    const SpeechRecognitionConstructor =
+      window.SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognitionConstructor) {
+      recognitionRef.current = new SpeechRecognitionConstructor()
+      recognitionRef.current.continuous = false
+      recognitionRef.current.interimResults = false
+      recognitionRef.current.lang = 'en-US'
+
+      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+        const lastResultIndex = event.results.length - 1
+        const spokenText = event.results[lastResultIndex][0].transcript
+
+        setInputContent(prev => (prev ? prev + " " : "") + spokenText)
+        
+        // after listening to the user, it should automatically submit to the ai
+
+        
+      }
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Speech recognition error:", event)
+      }
+
+      recognitionRef.current.onend = () => {
+
+        setListening(false)
+        // console.log(`RESULT OCCURRED : ${spokenText}`);
+      }
+
+    } else {
+      console.warn("Speech Recognition API not supported in this browser.")
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort()
+      }
+    }
+  }, [])
+
+  const toggleListening = () => {
+    if (!listening) {
+      if (recognitionRef.current) {
+        setListening(true)
+        recognitionRef.current.start()
+      }
+    } else {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+        setListening(false)
+      }
+    }
+  }
+
+  const adjustTextAreaHeight = () => {
+    if (inputRef.current) {
+      // reset height to auto calculate new height
+      inputRef.current.style.height = "auto"
+
+      // make sure it doesn't go over the max
+      inputRef.current.style.height = `${Math.min(
+        inputRef.current.scrollHeight,
+        textAreaMaxHeightPx
+      )}px`
+    }
+  }
+
+
 
   useEffect(() => {
     if (inputRef.current) {
