@@ -34,6 +34,10 @@ export const ChatWindow = () => {
         const lastResultIndex = event.results.length - 1
         const spokenText = event.results[lastResultIndex][0].transcript
         setInputContent(prev => (prev ? prev + " " : "") + spokenText)
+        
+        // after listening to the user, it should automatically submit to the ai
+        console.log(`RESULT OCCURRED : ${spokenText}`);
+        handleInputSubmit();
       }
 
       recognitionRef.current.onerror = (event: any) => {
@@ -224,7 +228,7 @@ export const ChatWindow = () => {
         >
           <img
             src={listening ? `/vectors/microphone-on.svg` : `/vectors/microphone-off.svg`}
-            className="h-full"
+            className="h-[80%]"
             alt={listening ? "Microphone On" : "Microphone Off"}
           />
         </Button>
