@@ -182,10 +182,8 @@ export const ChatWindow = () => {
 
   return (
     <div
-      className="w-full h-full bg-inherit rounded-lg py-3 px-2 relative overflow-y-auto"
-      style={{
-        boxShadow: `inset 0 0 30px 10px rgba(0, 0, 0, 0.03)`,
-      }}
+      className="shadow-inner w-full h-full bg-white rounded-lg py-3 px-4 relative overflow-y-auto border"
+
     >
       {/* LOGIC FOR RENDERING DIFFERENT CHATS */}
       <div className="flex flex-col gap-2 max-h-[86%] overflow-y-auto">
@@ -202,7 +200,7 @@ export const ChatWindow = () => {
         <div className="scrollTo-ref" ref={endOfMessagesRef} />
       </div>
 
-      <div className="user-input-field absolute bottom-2 w-full -ml-3 p-2 flex justify-center items-end gap-3 z-30">
+      <div className="user-input-field absolute bottom-2 w-full -ml-4 p-2 flex justify-center items-end gap-3 z-30">
         <Textarea
           className="w-[80%] overflow-y-auto resize-none bg-white z-40"
           placeholder="Ask Chef..."
