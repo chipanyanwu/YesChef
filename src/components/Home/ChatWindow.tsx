@@ -8,6 +8,10 @@ import { ChatBubble } from "./ChatBubble"
 import VoiceControl from "../VoiceControl"
 
 export const ChatWindow = () => {
+  // When set to true, mic stays on until user turns it back off
+  // When set to false, mic turns off after user doesn't speak for a while
+  const continuousListeningMode = true
+
   const [listening, setListening] = useState<boolean>(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const endOfMessagesRef = useRef<HTMLDivElement>(null)
@@ -15,11 +19,17 @@ export const ChatWindow = () => {
   const voices = window.speechSynthesis.getVoices()
   const [generationState, setGenerationState] = useState(false)
   const textAreaMaxHeightPx = 275
-  const { updateRecipe, rawRecipe, chatHistory, setChatHistory } = useRecipe()
+  const {
+    updateRecipe,
+    rawRecipe,
+    chatHistory,
+    setChatHistory,
+    notInit,
+    isInit,
+  } = useRecipe()
 
   const handleVoiceTranscription = (spokenText: string) => {
-    console.log(spokenText)
-    if (listening) {
+    if (listening || !continuousListeningMode) {
       setInputContent(spokenText)
     }
   }
@@ -46,11 +56,11 @@ export const ChatWindow = () => {
       ...prev,
       { message: inputContent, role: "USER" },
     ])
-    const query = inputContent
     setListening(false)
     setInputContent("")
     setGenerationState(true)
 
+    const query = inputContent
     // FIRST MESSAGE: use geminiPreliminaryMessage
     if (chatHistory.length <= 1) {
       const response = await geminiPreliminaryMessage(query)
@@ -96,12 +106,12 @@ export const ChatWindow = () => {
     }
   }, [inputContent])
 
-  // useEffect(() => {
-  //   if (chatHistory.length === 1) {
-  //     notInit()
-  //   }
-  //   endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" })
-  // }, [chatHistory, notInit])
+  useEffect(() => {
+    if (chatHistory.length === 1 && isInit) {
+      notInit()
+    }
+    endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [chatHistory, notInit, isInit])
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -153,6 +163,7 @@ export const ChatWindow = () => {
           toggleListening={toggleListening}
           onTranscription={handleVoiceTranscription}
           disabled={generationState}
+          continuous={continuousListeningMode}
         />
 
         <Button

@@ -10,6 +10,7 @@ interface VoiceControlProps {
   toggleListening: () => void
   onTranscription: (spokenText: string) => void
   disabled: boolean
+  continuous?: boolean
 }
 
 const VoiceControl = ({
@@ -17,6 +18,7 @@ const VoiceControl = ({
   toggleListening,
   onTranscription,
   disabled,
+  continuous = false,
 }: VoiceControlProps) => {
   const {
     transcript,
@@ -25,23 +27,16 @@ const VoiceControl = ({
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition()
 
-  // const toggleListening = () => {
-  //   if (listening) {
-  //     SpeechRecognition.stopListening()
-  //     resetTranscript()
-  //   } else {
-  //     SpeechRecognition.startListening({ continuous: true })
-  //   }
-  // }
-
   useEffect(() => {
-    if (isListening && !listening) {
-      SpeechRecognition.startListening({ continuous: true })
-    } else if (!isListening && listening) {
-      SpeechRecognition.stopListening()
-      resetTranscript()
+    if (continuous) {
+      if (isListening && !listening) {
+        resetTranscript()
+        SpeechRecognition.startListening({ continuous: continuous })
+      } else if (!isListening && listening) {
+        SpeechRecognition.stopListening()
+      }
     }
-  }, [isListening, listening, resetTranscript])
+  }, [continuous, isListening, listening, resetTranscript])
 
   useEffect(() => {
     if (listening) {
@@ -49,27 +44,39 @@ const VoiceControl = ({
     }
   }, [listening, onTranscription, transcript])
 
+  const toggle = () => {
+    if (continuous) {
+      toggleListening()
+      return
+    }
+
+    if (listening) {
+      SpeechRecognition.stopListening()
+    } else {
+      resetTranscript()
+      SpeechRecognition.startListening()
+    }
+  }
+
   return (
     <>
       {browserSupportsSpeechRecognition && (
-        <div className="voice-control p-4 border rounded shadow">
-          <Button
-            variant={"default"}
-            onClick={toggleListening}
-            className="bg-app_teal hover:bg-app_teal_dark h-[60px] w-[15%] object-contain"
-            disabled={disabled}
-          >
-            <img
-              src={
-                listening
-                  ? `/vectors/microphone-on.svg`
-                  : `/vectors/microphone-off.svg`
-              }
-              className="h-full"
-              alt={listening ? "Microphone On" : "Microphone Off"}
-            />
-          </Button>
-        </div>
+        <Button
+          variant={"default"}
+          onClick={toggle}
+          className="bg-app_teal hover:bg-app_teal_dark h-[60px] w-[15%] object-contain"
+          disabled={disabled}
+        >
+          <img
+            src={
+              listening
+                ? `/vectors/microphone-on.svg`
+                : `/vectors/microphone-off.svg`
+            }
+            className="h-full"
+            alt={listening ? "Microphone On" : "Microphone Off"}
+          />
+        </Button>
       )}
     </>
   )
