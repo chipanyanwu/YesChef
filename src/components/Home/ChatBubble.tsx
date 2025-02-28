@@ -1,4 +1,4 @@
-import { ChatMessage } from "@/types/chat-entry"
+import { ChatMessage } from "@/types/chats"
 
 type Props = {
   message: ChatMessage
