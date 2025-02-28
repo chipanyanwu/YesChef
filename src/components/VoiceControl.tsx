@@ -1,3 +1,4 @@
+import "regenerator-runtime/runtime"
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition"
@@ -5,11 +6,11 @@ import { Button } from "./ui/button"
 import { useEffect } from "react"
 
 interface VoiceControlProps {
-  isDisabled: boolean
-  setTranscript: React.Dispatch<React.SetStateAction<string>>
+  disabled: boolean
+  onTranscription: (spokenText: string) => void
 }
 
-const VoiceControl = ({ isDisabled, setTranscript }: VoiceControlProps) => {
+const VoiceControl = ({ disabled, onTranscription }: VoiceControlProps) => {
   const {
     transcript,
     listening,
@@ -22,13 +23,15 @@ const VoiceControl = ({ isDisabled, setTranscript }: VoiceControlProps) => {
       SpeechRecognition.stopListening()
       resetTranscript()
     } else {
-      SpeechRecognition.startListening()
+      SpeechRecognition.startListening({ continuous: true })
     }
   }
 
   useEffect(() => {
-    setTranscript(transcript)
-  }, [setTranscript, transcript])
+    if (listening) {
+      onTranscription(transcript)
+    }
+  }, [listening, onTranscription, transcript])
 
   return (
     <>
@@ -38,7 +41,7 @@ const VoiceControl = ({ isDisabled, setTranscript }: VoiceControlProps) => {
             variant={"default"}
             onClick={toggleListening}
             className="bg-app_teal hover:bg-app_teal_dark h-[60px] w-[15%] object-contain"
-            disabled={isDisabled}
+            disabled={disabled}
           >
             <img
               src={
