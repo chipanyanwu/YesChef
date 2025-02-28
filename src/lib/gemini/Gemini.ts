@@ -67,6 +67,7 @@ function generatePrompt(
         1. Edit the HTML/TSX recipe based on the user's request. Keep everything exactly the same where you can, only edit where relevant. If the html field is empty, 
         you may generate some from scratch. The HTML field of the response MUST contain exclusively HTML/TSX code renderable in Typescript, ideally with no styling.
         2. Provide a brief summary of the changes made.
+        3. If a user says that they have added an ingredient or completed a step, mark off the ingredient or related step in the recipe using a strikethrough.
 
         Your response MUST be formatted as follows,:
         [EDIT] <entirety of edited VALID HTML code> [ENDEDIT]
@@ -99,14 +100,10 @@ function generatePrompt(
   return prompt
 }
 
-function generateFirstMessagePrompt(
-  query: string,
-  userData?: User,
-) {
+function generateFirstMessagePrompt(query: string, userData?: User) {
   // add logic to determine what prompt ought to be
   // perhaps query less sophisticated model for tone to see what type of prompt to offer
   // fill out prompt later
-
 
   const prompt = `
         BEGINNING OF INSTRUCTIONS. 
@@ -193,12 +190,11 @@ export const queryGemini_2_0 = async (
 
     let editedHTML = editMatch[1].trim()
     const summary = summaryMatch[1].trim()
-    
-    editedHTML = editedHTML.replace(/^```html|```$/gm, "").trim();
+
+    editedHTML = editedHTML.replace(/^```html|```$/gm, "").trim()
     // editedHTML = editedHTML.replace(/(html|```)/g, "");
 
-
-    console.log(`REPLACED NEW HTML : \n${editedHTML}`);
+    console.log(`REPLACED NEW HTML : \n${editedHTML}`)
 
     return { editedHTML, summary }
   } catch (err) {
@@ -206,39 +202,49 @@ export const queryGemini_2_0 = async (
   }
 }
 
-export const geminiPreliminaryMessage = async (firstMessage : string, userData? : User) => {
-  const prompt = generateFirstMessagePrompt(firstMessage, userData || {name : "No name is known", email : "No email is known", userId : "No userID to display"});
+export const geminiPreliminaryMessage = async (
+  firstMessage: string,
+  userData?: User
+) => {
+  const prompt = generateFirstMessagePrompt(
+    firstMessage,
+    userData || {
+      name: "No name is known",
+      email: "No email is known",
+      userId: "No userID to display",
+    }
+  )
 
   try {
-
-    const resp : GenerateContentResult = await Gemini_2_0.generateContent(prompt);
+    const resp: GenerateContentResult = await Gemini_2_0.generateContent(prompt)
 
     if (!resp) {
-      throw new Error("Couldn't generate first response...");
+      throw new Error("Couldn't generate first response...")
     }
 
-    const responseText = resp.response.text();
-    console.log(responseText);
+    const responseText = resp.response.text()
+    console.log(responseText)
 
     // extract html section and summary section
     const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s)
     const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s)
 
     if (!editMatch || !summaryMatch) {
-      throw new Error("Gemini's response to user's first message was invalid.");
+      throw new Error("Gemini's response to user's first message was invalid.")
     }
 
-    let editedHTML = editMatch[1].trim();
-    const summary = summaryMatch[1].trim();
+    let editedHTML = editMatch[1].trim()
+    const summary = summaryMatch[1].trim()
 
-    editedHTML = editedHTML.replace(/^```html|```$/gm, "").trim();
+    editedHTML = editedHTML.replace(/^```html|```$/gm, "").trim()
 
-    console.log(`REPLACED NEW HTML : \n${editedHTML}`);
+    console.log(`REPLACED NEW HTML : \n${editedHTML}`)
 
-    return { editedHTML, summary };
-
+    return { editedHTML, summary }
   } catch (err) {
-    return handleAPICallErr(err as string, "Error occurred during first message generation");
+    return handleAPICallErr(
+      err as string,
+      "Error occurred during first message generation"
+    )
   }
-
 }

@@ -6,11 +6,18 @@ import { Button } from "./ui/button"
 import { useEffect } from "react"
 
 interface VoiceControlProps {
-  disabled: boolean
+  isListening: boolean
+  toggleListening: () => void
   onTranscription: (spokenText: string) => void
+  disabled: boolean
 }
 
-const VoiceControl = ({ disabled, onTranscription }: VoiceControlProps) => {
+const VoiceControl = ({
+  isListening,
+  toggleListening,
+  onTranscription,
+  disabled,
+}: VoiceControlProps) => {
   const {
     transcript,
     listening,
@@ -18,14 +25,23 @@ const VoiceControl = ({ disabled, onTranscription }: VoiceControlProps) => {
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition()
 
-  const toggleListening = () => {
-    if (listening) {
+  // const toggleListening = () => {
+  //   if (listening) {
+  //     SpeechRecognition.stopListening()
+  //     resetTranscript()
+  //   } else {
+  //     SpeechRecognition.startListening({ continuous: true })
+  //   }
+  // }
+
+  useEffect(() => {
+    if (isListening && !listening) {
+      SpeechRecognition.startListening({ continuous: true })
+    } else if (!isListening && listening) {
       SpeechRecognition.stopListening()
       resetTranscript()
-    } else {
-      SpeechRecognition.startListening({ continuous: true })
     }
-  }
+  }, [isListening, listening, resetTranscript])
 
   useEffect(() => {
     if (listening) {

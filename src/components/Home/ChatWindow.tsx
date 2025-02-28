@@ -8,17 +8,21 @@ import { ChatBubble } from "./ChatBubble"
 import VoiceControl from "../VoiceControl"
 
 export const ChatWindow = () => {
+  const [listening, setListening] = useState<boolean>(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const endOfMessagesRef = useRef<HTMLDivElement>(null)
   const [inputContent, setInputContent] = useState("")
+  const voices = window.speechSynthesis.getVoices()
   const [generationState, setGenerationState] = useState(false)
   const textAreaMaxHeightPx = 275
   const { updateRecipe, rawRecipe, chatHistory, setChatHistory, notInit } =
     useRecipe()
 
-  // Callback for handling voice transcriptions from VoiceControl
   const handleVoiceTranscription = (spokenText: string) => {
-    setInputContent(spokenText)
+    console.log(spokenText)
+    if (listening) {
+      setInputContent(spokenText)
+    }
   }
 
   const adjustTextAreaHeight = () => {
@@ -44,6 +48,7 @@ export const ChatWindow = () => {
       { message: inputContent, role: "USER" },
     ])
     const query = inputContent
+    setListening(false)
     setInputContent("")
     setGenerationState(true)
 
@@ -73,6 +78,16 @@ export const ChatWindow = () => {
       ...prev,
       { message: newBotResponse, role: "BOT" },
     ])
+
+    if ("speechSynthesis" in window) {
+      const utterance = new SpeechSynthesisUtterance(newBotResponse)
+      utterance.voice = voices[1]
+      utterance.lang = "en-US"
+      window.speechSynthesis.speak(utterance)
+    } else {
+      console.warn("Speech synthesis api not supported in this browser.")
+    }
+
     updateRecipe(updatedRecipe)
   }
 
@@ -98,6 +113,8 @@ export const ChatWindow = () => {
       setInputContent((prev) => prev + "\n")
     }
   }
+
+  const toggleListening = () => setListening((prev) => !prev)
 
   return (
     <div
@@ -133,6 +150,8 @@ export const ChatWindow = () => {
 
         {/* The VoiceControl component now handles speech-to-text */}
         <VoiceControl
+          isListening={listening}
+          toggleListening={toggleListening}
           onTranscription={handleVoiceTranscription}
           disabled={generationState}
         />
