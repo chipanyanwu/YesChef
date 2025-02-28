@@ -10,7 +10,7 @@ import VoiceControl from "../VoiceControl"
 export const ChatWindow = () => {
   // When set to true, mic stays on until user turns it back off
   // When set to false, mic turns off after user doesn't speak for a while
-  const continuousListeningMode = true
+  const continuousListeningMode = false
 
   const [listening, setListening] = useState<boolean>(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
