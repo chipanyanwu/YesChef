@@ -66,6 +66,7 @@ function generatePrompt(
         You will be provided with a recipe in HTML format. Your task is to:
         1. Edit the HTML/TSX recipe based on the user's request. Keep everything exactly the same where you can, only edit where relevant. If the html field is empty, 
         you may generate some from scratch. The HTML field of the response MUST contain exclusively HTML/TSX code renderable in Typescript, ideally with no styling.
+        1.1 If a user says that they have added an ingredient, mark off the ingredient in the recipe using a strikethrough.
         2. Provide a brief summary of the changes made.
 
         Your response MUST be formatted as follows,:

@@ -17,7 +17,7 @@ export const ChatWindow = () => {
   const [generationState, setGenerationState] = useState(false) // not currently generating a response
   const textAreaMaxHeightPx = 275
   const { updateRecipe, rawRecipe, chatHistory, setChatHistory, notInit } = useRecipe()
-
+  const voices = window.speechSynthesis.getVoices();
   const [listening, setListening] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
 
@@ -148,6 +148,16 @@ export const ChatWindow = () => {
       ]
       return ch
     })
+
+    //speaking the response
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(newBotResponse);
+      utterance.voice = voices[1];
+      utterance.lang = 'en-US';
+      window.speechSynthesis.speak(utterance);
+    } else {
+      console.warn('Speech synthesis api not supported in this browser.');
+    }
 
     updateRecipe(updatedRecipe)
   }
