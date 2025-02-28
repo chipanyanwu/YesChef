@@ -20,6 +20,17 @@ export const ChatWindow = () => {
   const voices = window.speechSynthesis.getVoices();
   const [listening, setListening] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
+  
+  let voice = voices[0];
+  
+  for (let i = 0; i < voices.length; i++) {
+    console.log(voices[i]);
+    if (voices[i]["name"] === "Google US English") {
+      console.log("found it");
+      voice = voices[i];
+      break;
+    }
+  }
 
   useEffect(() => {
     const SpeechRecognitionConstructor =
@@ -122,7 +133,17 @@ export const ChatWindow = () => {
         ]
         return ch
       });
-
+      console.log(voices)
+      //speaking the response
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(generatedResp);
+        utterance.voice = voices[1];
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+      } else {
+        console.warn('Speech synthesis api not supported in this browser.');
+      }
+      
       updateRecipe(generatedHTML);
 
       return;
