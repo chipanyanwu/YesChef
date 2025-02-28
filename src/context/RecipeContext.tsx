@@ -46,10 +46,10 @@ interface RecipeContextType {
   updateRecipe: (newRecipe: string) => void
   chatHistory: ChatMessage[]
   setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>
-  notInit : Function 
-  callInit : Function
-  showRendering : boolean
-  isInit : boolean
+  notInit: () => void
+  callInit: () => void
+  showRendering: boolean
+  isInit: boolean
 }
 
 const RecipeContext = createContext<RecipeContextType>({
@@ -58,10 +58,10 @@ const RecipeContext = createContext<RecipeContextType>({
   updateRecipe: () => {},
   chatHistory: [],
   setChatHistory: () => {},
-  notInit : () => {} ,
-  callInit : () => {},
-  showRendering : false,
-  isInit : true,
+  notInit: () => {},
+  callInit: () => {},
+  showRendering: false,
+  isInit: true,
 })
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -72,25 +72,25 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
   const [prevRecipe, setPrevRecipe] = useState("")
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
 
-  const [isInit, setIsInit] = useState(true);
-  const [showRendering, setShowRendering] = useState(false);
-  const delayMS = 1200;
+  const [isInit, setIsInit] = useState(true)
+  const [showRendering, setShowRendering] = useState(false)
+  const delayMS = 1200
 
-  async function delay(ms : number) {
+  async function delay(ms: number) {
     return new Promise<void>((resolve) => {
-      setTimeout(resolve, ms);
-    });
+      setTimeout(resolve, ms)
+    })
   }
 
   async function notInit() {
-    setIsInit(!isInit);
-    await delay(delayMS);
-    setShowRendering(!showRendering);
+    setIsInit(!isInit)
+    await delay(delayMS)
+    setShowRendering(!showRendering)
   }
 
   async function callInit() {
-    setShowRendering(false);
-    setIsInit(true);
+    setShowRendering(false)
+    setIsInit(true)
   }
 
   function updateRecipe(newRecipe: string) {
@@ -105,10 +105,10 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
     updateRecipe,
     chatHistory,
     setChatHistory,
-    notInit, 
-    callInit, 
+    notInit,
+    callInit,
     showRendering,
-    isInit
+    isInit,
   }
 
   return (

@@ -15,8 +15,7 @@ export const ChatWindow = () => {
   const voices = window.speechSynthesis.getVoices()
   const [generationState, setGenerationState] = useState(false)
   const textAreaMaxHeightPx = 275
-  const { updateRecipe, rawRecipe, chatHistory, setChatHistory, notInit } =
-    useRecipe()
+  const { updateRecipe, rawRecipe, chatHistory, setChatHistory } = useRecipe()
 
   const handleVoiceTranscription = (spokenText: string) => {
     console.log(spokenText)
@@ -97,12 +96,12 @@ export const ChatWindow = () => {
     }
   }, [inputContent])
 
-  useEffect(() => {
-    if (chatHistory.length === 1) {
-      notInit()
-    }
-    endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [chatHistory, notInit])
+  // useEffect(() => {
+  //   if (chatHistory.length === 1) {
+  //     notInit()
+  //   }
+  //   endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" })
+  // }, [chatHistory, notInit])
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
