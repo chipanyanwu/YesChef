@@ -10,7 +10,6 @@
     "**/.yarn": true,
     "**/.pnp.*": true,
     "**/node_modules": true,
-    "package-lock.json": true,
+    "package-lock.json": true
   },
-  "prettier.requireConfig": true
 }

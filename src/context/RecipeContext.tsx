@@ -1,4 +1,4 @@
-import { ChatMessage } from "@/types/chat-entry"
+import { ChatMessage } from "@/types/chats"
 import { createContext, ReactNode, useContext, useState } from "react"
 
 // const exampleText = `

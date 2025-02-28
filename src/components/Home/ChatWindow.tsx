@@ -1,10 +1,13 @@
+import { useEffect, useRef, useState } from "react"
 import { useRecipe } from "@/context/RecipeContext"
 import { geminiPreliminaryMessage, queryGemini_2_0 } from "@/lib/gemini/Gemini"
-import { ChatMessage } from "@/types/chat-entry"
-import { useEffect, useRef, useState } from "react"
+import { ChatMessage, SpeechRecognitionEvent } from "@/types/chats"
 import { Button } from "../ui/button"
 import { Textarea } from "../ui/textarea"
 import { ChatBubble } from "./ChatBubble"
+import { SpeechRecognition } from "@/types/chats"
+
+import VoiceControl from "../VoiceControl"
 
 export const ChatWindow = () => {
   // considered using card here but may make more sense to just design our own.
@@ -16,7 +19,8 @@ export const ChatWindow = () => {
   const [inputContent, setInputContent] = useState("")
   const [generationState, setGenerationState] = useState(false) // not currently generating a response
   const textAreaMaxHeightPx = 275
-  const { updateRecipe, rawRecipe, chatHistory, setChatHistory, notInit } = useRecipe()
+  const { updateRecipe, rawRecipe, chatHistory, setChatHistory, notInit } =
+    useRecipe()
 
   const [listening, setListening] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
@@ -28,12 +32,12 @@ export const ChatWindow = () => {
       recognitionRef.current = new SpeechRecognitionConstructor()
       recognitionRef.current.continuous = false
       recognitionRef.current.interimResults = false
-      recognitionRef.current.lang = 'en-US'
+      recognitionRef.current.lang = "en-US"
 
       recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
         const lastResultIndex = event.results.length - 1
         const spokenText = event.results[lastResultIndex][0].transcript
-        setInputContent(prev => (prev ? prev + " " : "") + spokenText)
+        setInputContent((prev) => (prev ? prev + " " : "") + spokenText)
       }
 
       recognitionRef.current.onerror = (event: any) => {
@@ -107,13 +111,14 @@ export const ChatWindow = () => {
     setGenerationState(true)
 
     // handle FIRST MESSAGE case
-    if (chatHistory.length <= 1) { // we have already added this message to the list
-      const response = await geminiPreliminaryMessage(query); // add user context once we have it
+    if (chatHistory.length <= 1) {
+      // we have already added this message to the list
+      const response = await geminiPreliminaryMessage(query) // add user context once we have it
 
-      const generatedHTML = response.editedHTML;
-      const generatedResp = response.summary;
+      const generatedHTML = response.editedHTML
+      const generatedResp = response.summary
 
-      setGenerationState(false);
+      setGenerationState(false)
 
       setChatHistory((prev: ChatMessage[]) => {
         const ch = [
@@ -121,12 +126,11 @@ export const ChatWindow = () => {
           { message: generatedResp, role: "BOT" } as ChatMessage,
         ]
         return ch
-      });
+      })
 
-      updateRecipe(generatedHTML);
+      updateRecipe(generatedHTML)
 
-      return;
-
+      return
     }
 
     const response = await queryGemini_2_0(query, rawRecipe, chatHistory)
@@ -159,25 +163,24 @@ export const ChatWindow = () => {
   }, [inputContent])
 
   useEffect(() => {
-    if (chatHistory.length === 1) { // since it starts at 0 and can't be removed, this is good
-      notInit();
+    if (chatHistory.length === 1) {
+      // since it starts at 0 and can't be removed, this is good
+      notInit()
     }
 
     endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [chatHistory])
 
-  function handleKeyDown(e : React.KeyboardEvent<HTMLTextAreaElement>) {
-
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleInputSubmit();
-    } else if (e.key === 'Enter' && e.shiftKey) {
-      e.preventDefault();
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleInputSubmit()
+    } else if (e.key === "Enter" && e.shiftKey) {
+      e.preventDefault()
       setInputContent((prev) => {
-        return prev + "\n";
-      });
+        return prev + "\n"
+      })
     }
-
   }
 
   return (
@@ -215,7 +218,7 @@ export const ChatWindow = () => {
           disabled={generationState}
           onKeyDown={handleKeyDown}
         />
-        
+
         <Button
           variant={"default"}
           onClick={toggleListening}
@@ -223,7 +226,11 @@ export const ChatWindow = () => {
           disabled={generationState}
         >
           <img
-            src={listening ? `/vectors/microphone-on.svg` : `/vectors/microphone-off.svg`}
+            src={
+              listening
+                ? `/vectors/microphone-on.svg`
+                : `/vectors/microphone-off.svg`
+            }
             className="h-full"
             alt={listening ? "Microphone On" : "Microphone Off"}
           />
@@ -235,10 +242,7 @@ export const ChatWindow = () => {
           onClick={handleInputSubmit}
           disabled={generationState}
         >
-          <img
-            src={`/vectors/chef-hat-and-spatula.svg`}
-            className="h-full"
-          />
+          <img src={`/vectors/chef-hat-and-spatula.svg`} className="h-full" />
         </Button>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { Gemini_2_0 } from "./gemini_config"
-import { UserData } from "@/types/user-data"
+import { User } from "@/types/user"
 import { GenerateContentResult } from "@google/generative-ai"
-import { ChatMessage } from "@/types/chat-entry"
+import { ChatMessage } from "@/types/chats"
 
 type APICallResponse = {
   editedHTML: string
@@ -34,7 +34,7 @@ function handleAPICallErr(err: string, message: string): APICallResponse {
 function generatePrompt(
   query: string,
   chatHistory: ChatMessage[],
-  userData?: UserData,
+  userData?: User,
   recipeString?: string
 ) {
   // add logic to determine what prompt ought to be
@@ -101,7 +101,7 @@ function generatePrompt(
 
 function generateFirstMessagePrompt(
   query: string,
-  userData?: UserData,
+  userData?: User,
 ) {
   // add logic to determine what prompt ought to be
   // perhaps query less sophisticated model for tone to see what type of prompt to offer
@@ -161,12 +161,12 @@ export const queryGemini_2_0 = async (
   query: string,
   recipeString: string,
   chatHistory: ChatMessage[],
-  userData?: UserData
+  userData?: User
 ): Promise<APICallResponse> => {
   const prompt = generatePrompt(
     query,
     chatHistory || [],
-    userData ? userData : ({} as UserData),
+    userData ? userData : ({} as User),
     recipeString
   )
 
@@ -206,7 +206,7 @@ export const queryGemini_2_0 = async (
   }
 }
 
-export const geminiPreliminaryMessage = async (firstMessage : string, userData? : UserData) => {
+export const geminiPreliminaryMessage = async (firstMessage : string, userData? : User) => {
   const prompt = generateFirstMessagePrompt(firstMessage, userData || {name : "No name is known", email : "No email is known", userId : "No userID to display"});
 
   try {
