@@ -1,13 +1,13 @@
-import TSXFromStringRender from "@/components/TSXFromStringRender";
+import TSXFromStringRender from "@/components/TSXFromStringRender"
 
-import { useRecipe } from "@/context/RecipeContext";
+import { useRecipe } from "@/context/RecipeContext"
 
-import { ChatWindow } from "../components/Home/ChatWindow";
+import { ChatWindow } from "../components/Home/ChatWindow"
 
 function Home() {
   // component for the main page
 
-  const { isInit, showRendering } = useRecipe();
+  const { isInit, showRendering } = useRecipe()
 
   // home page arranged generally as side-by-side components, the chat and the recipe.
   return (
@@ -34,13 +34,7 @@ function Home() {
 
       {/* ACTUAL CHAT SECTION */}
 
-      <div
-        className="col-span-2 row-span-5 "
-        style={{
-          gridColumn: isInit ? "2 / 6" : "1 / 3",
-          gridRow: isInit ? "3 / 5" : "2 / 7",
-        }}
-      >
+      <div className="col-span-2 row-span-5 ">
         <div
           className="chat-window-container transition-all duration-1000 ease-in-out w-full h-full"
           // style={{
@@ -70,7 +64,7 @@ function Home() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export default Home;
+export default Home
