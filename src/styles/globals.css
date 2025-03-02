@@ -77,3 +77,11 @@ body {
 
 
 }
+
+.surrounding-shadow {
+  box-shadow: 0 0 8px 5px rgba(0, 0, 0, 0.04);
+}
+
+.inner-shadow {
+  box-shadow: inner 0 0 10px 10px rgba(0, 0, 0, 0.03);
+}

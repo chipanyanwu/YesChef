@@ -1,24 +1,24 @@
-import { useEffect, useRef, useState } from "react"
-import { useRecipe } from "@/context/RecipeContext"
-import { geminiPreliminaryMessage, queryGemini_2_0 } from "@/lib/gemini/Gemini"
-import { ChatMessage } from "@/types/chats"
-import { Button } from "../ui/button"
-import { Textarea } from "../ui/textarea"
-import { ChatBubble } from "./ChatBubble"
-import VoiceControl from "../VoiceControl"
+import { useEffect, useRef, useState } from "react";
+import { useRecipe } from "@/context/RecipeContext";
+import { geminiPreliminaryMessage, queryGemini_2_0 } from "@/lib/gemini/Gemini";
+import { ChatMessage } from "@/types/chats";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
+import { ChatBubble } from "./ChatBubble";
+import VoiceControl from "../VoiceControl";
 
 export const ChatWindow = () => {
   // When set to true, mic stays on until user turns it back off
   // When set to false, mic turns off after user doesn't speak for a while
-  const continuousListeningMode = false
+  const continuousListeningMode = false;
 
-  const [listening, setListening] = useState<boolean>(false)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  const endOfMessagesRef = useRef<HTMLDivElement>(null)
-  const [inputContent, setInputContent] = useState("")
-  const voices = window.speechSynthesis.getVoices()
-  const [generationState, setGenerationState] = useState(false)
-  const textAreaMaxHeightPx = 275
+  const [listening, setListening] = useState<boolean>(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const endOfMessagesRef = useRef<HTMLDivElement>(null);
+  const [inputContent, setInputContent] = useState("");
+  const voices = window.speechSynthesis.getVoices();
+  const [generationState, setGenerationState] = useState(false);
+  const textAreaMaxHeightPx = 275;
   const {
     updateRecipe,
     rawRecipe,
@@ -26,110 +26,107 @@ export const ChatWindow = () => {
     setChatHistory,
     notInit,
     isInit,
-  } = useRecipe()
+  } = useRecipe();
 
   const handleVoiceTranscription = (spokenText: string) => {
     if (listening || !continuousListeningMode) {
-      setInputContent(spokenText)
+      setInputContent(spokenText);
     }
-  }
+  };
 
   const adjustTextAreaHeight = () => {
     if (inputRef.current) {
-      inputRef.current.style.height = "auto"
+      inputRef.current.style.height = "auto";
       inputRef.current.style.height = `${Math.min(
         inputRef.current.scrollHeight,
         textAreaMaxHeightPx
-      )}px`
+      )}px`;
     }
-  }
+  };
 
   function handleInputChange(curr: string) {
-    setInputContent(curr)
+    setInputContent(curr);
   }
 
   async function handleInputSubmit() {
-    if (!inputContent) return
+    if (!inputContent) return;
 
     // add user message
     setChatHistory((prev: ChatMessage[]) => [
       ...prev,
       { message: inputContent, role: "USER" },
-    ])
-    setListening(false)
-    setInputContent("")
-    setGenerationState(true)
+    ]);
+    setListening(false);
+    setInputContent("");
+    setGenerationState(true);
 
-    const query = inputContent
+    const query = inputContent;
     // FIRST MESSAGE: use geminiPreliminaryMessage
     if (chatHistory.length <= 1) {
-      const response = await geminiPreliminaryMessage(query)
-      setGenerationState(false)
+      const response = await geminiPreliminaryMessage(query);
+      setGenerationState(false);
       setChatHistory((prev: ChatMessage[]) => [
         ...prev,
         { message: response.summary, role: "BOT" },
-      ])
-      updateRecipe(response.editedHTML)
-      return
+      ]);
+      updateRecipe(response.editedHTML);
+      return;
     }
 
     // Subsequent messages: use queryGemini_2_0
-    const response = await queryGemini_2_0(query, rawRecipe, chatHistory)
-    let updatedRecipe = rawRecipe
+    const response = await queryGemini_2_0(query, rawRecipe, chatHistory);
+    let updatedRecipe = rawRecipe;
     let newBotResponse =
-      "Sorry, something went wrong on my end, try asking again in a second?"
+      "Sorry, something went wrong on my end, try asking again in a second?";
     if (response?.editedHTML && response?.summary) {
-      updatedRecipe = response.editedHTML
-      newBotResponse = response.summary
+      updatedRecipe = response.editedHTML;
+      newBotResponse = response.summary;
     }
-    setGenerationState(false)
+    setGenerationState(false);
     setChatHistory((prev: ChatMessage[]) => [
       ...prev,
       { message: newBotResponse, role: "BOT" },
-    ])
+    ]);
 
     if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(newBotResponse)
-      utterance.voice = voices[1]
-      utterance.lang = "en-US"
-      window.speechSynthesis.speak(utterance)
+      const utterance = new SpeechSynthesisUtterance(newBotResponse);
+      utterance.voice = voices[1];
+      utterance.lang = "en-US";
+      window.speechSynthesis.speak(utterance);
     } else {
-      console.warn("Speech synthesis api not supported in this browser.")
+      console.warn("Speech synthesis api not supported in this browser.");
     }
 
-    updateRecipe(updatedRecipe)
+    updateRecipe(updatedRecipe);
   }
 
   useEffect(() => {
     if (inputRef.current) {
-      adjustTextAreaHeight()
+      adjustTextAreaHeight();
     }
-  }, [inputContent])
+  }, [inputContent]);
 
   useEffect(() => {
     if (chatHistory.length === 1 && isInit) {
-      notInit()
+      notInit();
     }
-    endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [chatHistory, notInit, isInit])
+    endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatHistory, notInit, isInit]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleInputSubmit()
+      e.preventDefault();
+      handleInputSubmit();
     } else if (e.key === "Enter" && e.shiftKey) {
-      e.preventDefault()
-      setInputContent((prev) => prev + "\n")
+      e.preventDefault();
+      setInputContent((prev) => prev + "\n");
     }
   }
 
-  const toggleListening = () => setListening((prev) => !prev)
+  const toggleListening = () => setListening((prev) => !prev);
 
   return (
-    <div
-      className="w-full h-full bg-inherit rounded-lg py-3 px-2 relative overflow-y-auto"
-      style={{ boxShadow: `inset 0 0 30px 10px rgba(0, 0, 0, 0.03)` }}
-    >
+    <div className="shadow-inner w-full h-full bg-white rounded-lg py-3 px-4 relative overflow-y-auto border">
       <div className="flex flex-col gap-2 max-h-[86%] overflow-y-auto">
         {chatHistory.length > 0 ? (
           chatHistory.map((chatMsg, idx) => (
@@ -143,15 +140,15 @@ export const ChatWindow = () => {
         <div className="scrollTo-ref" ref={endOfMessagesRef} />
       </div>
 
-      <div className="user-input-field absolute bottom-2 w-full -ml-3 p-2 flex justify-center items-end gap-3 z-30">
+      <div className="user-input-field absolute bottom-2 w-full -ml-4 p-2 flex justify-center items-end gap-3 z-30">
         <Textarea
           className="w-[80%] overflow-y-auto resize-none bg-white z-40"
           placeholder="Ask Chef..."
           ref={inputRef}
           value={inputContent}
           onChange={(e) => {
-            e.preventDefault()
-            handleInputChange(e.target.value)
+            e.preventDefault();
+            handleInputChange(e.target.value);
           }}
           disabled={generationState}
           onKeyDown={handleKeyDown}
@@ -176,5 +173,5 @@ export const ChatWindow = () => {
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};
