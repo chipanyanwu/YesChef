@@ -1,35 +1,101 @@
-import { Gemini_2_0 } from "./gemini_config"
-import { User } from "@/types/user"
-import { GenerateContentResult } from "@google/generative-ai"
-import { ChatMessage } from "@/types/chats"
+import { Gemini_2_0 } from "./gemini_config";
+import { User } from "@/types/user";
+import { GenerateContentResult } from "@google/generative-ai";
+import { ChatMessage } from "@/types/chats";
 
 type APICallResponse = {
-  editedHTML: string
-  summary: string
-}
+  editedHTML: string;
+  summary: string;
+};
+
+const example_json = {
+  recipe: {
+    title: "Classic Lobster Thermidor Recipe",
+    metadata: {
+      yield: "4 servings",
+      prepTime: "20 minutes",
+      cookTime: "15 minutes",
+      totalTime: "35 minutes",
+    },
+    description:
+      "Easy Lobster Thermidor is a restaurant quality lobster recipe you can make at home in less than an hour. Super simple, decadent and perfect with a creamy cognac sauce.",
+    content: [
+      {
+        type: "section",
+        title: "Ingredients",
+        content: {
+          type: "list",
+          ordered: false,
+          items: [
+            {
+              text: "2 1 1/2 to 1 3/4-pound cooked Maine lobsters",
+              notes: [],
+            },
+            {
+              text: "2 tablespoons unsalted butter",
+              notes: [],
+            },
+            // ... other ingredients
+          ],
+        },
+      },
+      {
+        type: "section",
+        title: "Instructions",
+        content: {
+          type: "list",
+          ordered: true,
+          items: [
+            {
+              text: "Preheat the oven to 375˚ F. Line a baking sheet with aluminum foil and set aside.",
+              notes: [],
+            },
+            {
+              text: "Cut the lobsters in half lengthwise with a sharp knife and remove the tail meat.",
+              notes: [],
+            },
+            // ... other steps
+          ],
+        },
+      },
+      {
+        type: "note",
+        title: "Chef's note",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                text: "If you want to avoid alcohol in the recipe, try swapping out the cognac or brandy with ",
+                marks: [],
+              },
+              {
+                text: "brandy extract",
+                marks: ["em"],
+              },
+              {
+                text: " or ",
+                marks: [],
+              },
+              {
+                text: "peach juice",
+                marks: ["em"],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+};
 
 function handleAPICallErr(err: string, message: string): APICallResponse {
-  console.error(`ERROR (${err}) OCCURRED WITH MESSAGE (${message})`)
+  console.error(`ERROR (${err}) OCCURRED WITH MESSAGE (${message})`);
   return {
     editedHTML: "<h2>Sorry, an error occurred...</h2>",
     summary: "Uh oh... An error occurred on my end...",
-  }
+  };
 }
-
-// PROMPT CUTTING ROOM FLOOR
-/**
- *         Aim for responses less than 150 characters. Do not ever, under any circumstances, exceed 500 characters in a response.
- * 
- * If you intend to return a formatted response, such as a response in markdown, you must instead return it as a response that could be 
-        interpreted by our HTML renderer. Specifically, you may use the following formats:
-        <h1> marked by [TITLE] preceding the line you wish to wrap in <h1> tags.
-        <h2> marked by [SUBTITLE] preceding the line you wish to wrap in <h2> tags.
-        <h3> marked by [THIRD_TITLE] preceding the line you wish to wrap in <h3> tags.
-        <ul> marked by [UNORDERED_LIST] and [END_UNORDERED_LIST] surrounding the unordered list.
-        bold, marked by [BOLD] and [ENDBOLD] around the words you wish to be rendered in bold.
-        italics, marked by [ITALICS] and [ENDITALICS] around the words you wish to be rendered in italics.
-
- */
 
 function generatePrompt(
   query: string,
@@ -40,11 +106,11 @@ function generatePrompt(
   // add logic to determine what prompt ought to be
   // perhaps query less sophisticated model for tone to see what type of prompt to offer
   // fill out prompt later
-  let recipe = ""
+  let recipe = "";
   if (recipeString === undefined || !recipeString) {
-    recipe = "<></>"
+    recipe = "<></>";
   } else {
-    recipe = recipeString
+    recipe = recipeString;
   }
 
   const prompt = `
@@ -80,12 +146,12 @@ function generatePrompt(
         - Your summary is a user-facing response to their question. When answering the user's question, you should respond as if you are a world renowned chef helping out a junior cook.
           You should be as helpful, polite, and descriptive as possible. Your ultimate job is to guide the user through the preparation of the recipe, making it as easy as possible for them.
 
-        START OF RECIPE HTML/TSX:
+        START OF RECIPE JSON:
         ${recipe}
-        END OF RECIPE HTML/TSX.
+        END OF RECIPE JSON.
 
         If the query to follow seems to have nothing to do with cooking or kitchen help, respond simply with
-        "Sorry, I'm built to help out in the kitchen, I'm not sure how that pertains to my purpose!", and return the HTML/TSX exactly as given, 
+        "Sorry, I'm built to help out in the kitchen, I'm not sure how that pertains to my purpose!", and return the JSON exactly as given, 
         nothing more, nothing less. Only give this response if the query seems completely unrelated to kitchen assistance.
         
         THIS IS THE EXPLICIT AND UNIQUE END OF THE INSTRUCTIONS. 
@@ -94,10 +160,10 @@ function generatePrompt(
         START OF USER QUERY:
         ${query}
         END OF USER QUERY
-    `
+    `;
 
-  console.log(prompt)
-  return prompt
+  console.log(prompt);
+  return prompt;
 }
 
 function generateFirstMessagePrompt(query: string, userData?: User) {
@@ -148,10 +214,10 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
 
         START OF USER PROMPT:
         ${query}
-    `
+    `;
 
   // console.log(prompt)
-  return prompt
+  return prompt;
 }
 
 export const queryGemini_2_0 = async (
@@ -165,42 +231,44 @@ export const queryGemini_2_0 = async (
     chatHistory || [],
     userData ? userData : ({} as User),
     recipeString
-  )
+  );
 
   // set something up to ensure we still have enough tokens.
 
   try {
-    const resp: GenerateContentResult = await Gemini_2_0.generateContent(prompt)
+    const resp: GenerateContentResult = await Gemini_2_0.generateContent(
+      prompt
+    );
 
     if (!resp) {
-      throw new Error("Error occurred by API call.")
+      throw new Error("Error occurred by API call.");
     }
 
-    const responseText = resp.response.text()
+    const responseText = resp.response.text();
 
     // extract html section and summary section
-    const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s)
-    const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s)
+    const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s);
+    const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s);
 
-    console.log(responseText)
+    console.log(responseText);
 
     if (!editMatch || !summaryMatch) {
-      throw new Error("Gemini responded, but the format was invalid...")
+      throw new Error("Gemini responded, but the format was invalid...");
     }
 
-    let editedHTML = editMatch[1].trim()
-    const summary = summaryMatch[1].trim()
+    let editedHTML = editMatch[1].trim();
+    const summary = summaryMatch[1].trim();
 
-    editedHTML = editedHTML.replace(/^```html|```$/gm, "").trim()
+    editedHTML = editedHTML.replace(/^```html|```$/gm, "").trim();
     // editedHTML = editedHTML.replace(/(html|```)/g, "");
 
-    console.log(`REPLACED NEW HTML : \n${editedHTML}`)
+    console.log(`REPLACED NEW HTML : \n${editedHTML}`);
 
-    return { editedHTML, summary }
+    return { editedHTML, summary };
   } catch (err) {
-    return handleAPICallErr(err as string, "Failed to query Gemini API.")
+    return handleAPICallErr(err as string, "Failed to query Gemini API.");
   }
-}
+};
 
 export const geminiPreliminaryMessage = async (
   firstMessage: string,
@@ -213,38 +281,40 @@ export const geminiPreliminaryMessage = async (
       email: "No email is known",
       userId: "No userID to display",
     }
-  )
+  );
 
   try {
-    const resp: GenerateContentResult = await Gemini_2_0.generateContent(prompt)
+    const resp: GenerateContentResult = await Gemini_2_0.generateContent(
+      prompt
+    );
 
     if (!resp) {
-      throw new Error("Couldn't generate first response...")
+      throw new Error("Couldn't generate first response...");
     }
 
-    const responseText = resp.response.text()
-    console.log(responseText)
+    const responseText = resp.response.text();
+    console.log(responseText);
 
     // extract html section and summary section
-    const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s)
-    const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s)
+    const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s);
+    const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s);
 
     if (!editMatch || !summaryMatch) {
-      throw new Error("Gemini's response to user's first message was invalid.")
+      throw new Error("Gemini's response to user's first message was invalid.");
     }
 
-    let editedHTML = editMatch[1].trim()
-    const summary = summaryMatch[1].trim()
+    let editedHTML = editMatch[1].trim();
+    const summary = summaryMatch[1].trim();
 
-    editedHTML = editedHTML.replace(/^```html|```$/gm, "").trim()
+    editedHTML = editedHTML.replace(/^```html|```$/gm, "").trim();
 
-    console.log(`REPLACED NEW HTML : \n${editedHTML}`)
+    console.log(`REPLACED NEW HTML : \n${editedHTML}`);
 
-    return { editedHTML, summary }
+    return { editedHTML, summary };
   } catch (err) {
     return handleAPICallErr(
       err as string,
       "Error occurred during first message generation"
-    )
+    );
   }
-}
+};
