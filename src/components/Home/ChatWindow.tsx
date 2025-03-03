@@ -67,21 +67,19 @@ export const ChatWindow = () => {
       setGenerationState(false);
       setChatHistory((prev: ChatMessage[]) => [
         ...prev,
-        { message: response.summary, role: "BOT" },
+        { message: response.summary.content, role: "BOT" },
       ]);
-      updateRecipe(response.editedHTML);
+      updateRecipe(response);
       return;
     }
 
     // Subsequent messages: use queryGemini_2_0
     const response = await queryGemini_2_0(query, rawRecipe, chatHistory);
     let updatedRecipe = rawRecipe;
-    let newBotResponse =
-      "Sorry, something went wrong on my end, try asking again in a second?";
-    if (response?.editedHTML && response?.summary) {
-      updatedRecipe = response.editedHTML;
-      newBotResponse = response.summary;
-    }
+    // let newBotResponse = "Sorry, something went wrong on my end, try asking again in a second?";
+    let newBotResponse = response.summary.content;
+    updatedRecipe = response;
+
     setGenerationState(false);
     setChatHistory((prev: ChatMessage[]) => [
       ...prev,

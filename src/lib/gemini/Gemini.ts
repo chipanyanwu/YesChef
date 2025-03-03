@@ -139,16 +139,16 @@ function generatePrompt(
   query: string,
   chatHistory: ChatMessage[],
   userData?: User,
-  recipeString?: string
+  currRecipe?: RecipeResponse | null
 ) {
   // add logic to determine what prompt ought to be
   // perhaps query less sophisticated model for tone to see what type of prompt to offer
   // fill out prompt later
   let recipe = "";
-  if (recipeString === undefined || !recipeString) {
+  if (currRecipe === undefined || !currRecipe) {
     recipe = '{recipe : {}, summary : {content : ""}}';
   } else {
-    recipe = recipeString;
+    recipe = JSON.stringify(currRecipe);
   }
 
   const prompt = `
@@ -483,7 +483,7 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
 
 export const queryGemini_2_0 = async (
   query: string,
-  recipeString: string,
+  currRecipe: RecipeResponse | null,
   chatHistory: ChatMessage[],
   userData?: User
 ): Promise<RecipeResponse> => {
@@ -491,7 +491,7 @@ export const queryGemini_2_0 = async (
     query,
     chatHistory || [],
     userData ? userData : ({} as User),
-    recipeString
+    currRecipe
   );
 
   // set something up to ensure we still have enough tokens.

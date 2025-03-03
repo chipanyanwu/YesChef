@@ -1,13 +1,12 @@
 // import {transform} from '@babel/standalone';
-import { useRecipe } from "@/context/RecipeContext"
-import parse from "html-react-parser"
+import { useRecipe } from "@/context/RecipeContext";
+// import parse from "html-react-parser";
 // import { diffChars } from "diff"
-import { useEffect, useState } from "react"
-
+import { useEffect, useState } from "react";
 
 type Props = {
-  cn: string
-}
+  cn: string;
+};
 
 // const highlightChanges = (oldRecipe : string, newRecipe : string) => {
 //   const differences = diffChars(oldRecipe, newRecipe);
@@ -26,8 +25,8 @@ type Props = {
 // }
 
 export default function TSXFromStringRender({ cn }: Props) {
-  const { prevRecipe, rawRecipe } = useRecipe()
-  const [changedHtml, setChangedHtml] = useState(rawRecipe)
+  const { prevRecipe, rawRecipe } = useRecipe();
+  const [changedHtml, setChangedHtml] = useState(rawRecipe);
 
   useEffect(() => {
     // if (prevRecipe && rawRecipe !== prevRecipe) {
@@ -40,15 +39,13 @@ export default function TSXFromStringRender({ cn }: Props) {
 
     //   return () => clearTimeout(timeout);
     // }
-    setChangedHtml(rawRecipe)
-  }, [rawRecipe, prevRecipe])
+    setChangedHtml(rawRecipe);
+  }, [rawRecipe, prevRecipe]);
 
   // adding a custom classname so we can call it '.rendered-recipe-window' or something and style its parts in globalas
   return (
-    <div
-      className={`rendered-text ${cn}`}
-    >
-      {parse(changedHtml)}
+    <div className={`rendered-text ${cn}`}>
+      {JSON.stringify(changedHtml, null, 2)}
     </div>
-  )
+  );
 }
