@@ -2,6 +2,7 @@ import { Gemini_2_0 } from "./gemini_config";
 import { User } from "@/types/user";
 import { GenerateContentResult } from "@google/generative-ai";
 import { ChatMessage } from "@/types/chats";
+import { RecipeResponse } from "@/types/AIResponse";
 
 type APICallResponse = {
   editedHTML: string;
@@ -105,11 +106,32 @@ const example_json = {
   commands: [],
 };
 
-function handleAPICallErr(err: string, message: string): APICallResponse {
+function handleAPICallErr(err: string, message: string): RecipeResponse {
   console.error(`ERROR (${err}) OCCURRED WITH MESSAGE (${message})`);
   return {
-    editedHTML: "<h2>Sorry, an error occurred...</h2>",
-    summary: "Uh oh... An error occurred on my end...",
+    recipe: {
+      title: "An error ocurred...",
+      content: [
+        {
+          type: "note",
+          title: "We're sorry this happened.",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  text: "Try sending your request again in a moment, or making a different request.",
+                  marks: ["em"],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    summary: {
+      content: "An error ocurred on my end... my apologies.",
+    },
   };
 }
 
@@ -298,41 +320,70 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
       
       This is the very first message in this exchange with this user. They should be offering context about what they need help
       with in the kitchen. They will probably be pasting a very messily-formatted recipe from another site. Your tasks are:
-      1. Parse any recipe content into standardized JSON format using EXACTLY this schema:
-      {
-        "recipe": {
-          "title": "string",
-          "metadata": {
-            "yield": "string",
-            "prepTime": "string",
-            "cookTime": "string",
-            "totalTime": "string"
-          },
-          "description": "string",
-          "content": [
-            {
-              "type": "section",
-              "title": "string",
-              "content": {
-                "type": "list",
-                "ordered": boolean,
-                "items": [
-                  {
-                    "text": "string",
-                    "completed": false,  // Initial state
-                    "current": false,     // Initial state
-                    "notes": [],
-                    "marks": []
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        "summary": {
-          "content": "string"
-        }
-      }
+      1. Parse any recipe content into standardized JSON format using EXACTLY this 'RecipeResponse' schema:
+
+        type RecipeResponse = {
+          recipe: Recipe;
+          summary: Summary;
+        };
+        
+        type Recipe = {
+          title: string;
+          metadata?: Metadata;
+          description?: string;
+          content: ContentBlock[];
+        };
+        
+        type Metadata = {
+          yield?: string;
+          prepTime?: string;
+          cookTime?: string;
+          totalTime?: string;
+        };
+        
+        type ContentBlock = Section | Note;
+        
+        type Section = {
+          type: "section";
+          title: string;
+          content: ListContent | Paragraph;
+        };
+        
+        type Note = {
+          type: "note";
+          title: string;
+          content: Paragraph[];
+        };
+        
+        type ListContent = {
+          type: "list";
+          ordered: boolean;
+          items: ListItem[];
+        };
+        
+        type ListItem = {
+          text: string;
+          completed?: boolean; // Optional, only for instruction steps
+          current?: boolean; // Optional, only for instruction steps
+          notes?: string[];
+          marks?: Mark[];
+        };
+        
+        type Paragraph = {
+          type: "paragraph";
+          content: TextContent[];
+        };
+        
+        type TextContent = {
+          text: string;
+          marks?: Mark[];
+        };
+        
+        type Mark = "em" | "strong" | "sub" | "sup"; // Add more as needed
+        
+        type Summary = {
+          content: string;
+        };      
       
       2. Follow these RULES STRICTLY:
       - First instruction step must have "current": true
@@ -435,7 +486,7 @@ export const queryGemini_2_0 = async (
   recipeString: string,
   chatHistory: ChatMessage[],
   userData?: User
-): Promise<APICallResponse> => {
+): Promise<RecipeResponse> => {
   const prompt = generatePrompt(
     query,
     chatHistory || [],
@@ -458,24 +509,32 @@ export const queryGemini_2_0 = async (
     console.log(responseText);
 
     // extract html section and summary section
-    const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s);
-    const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s);
+    // const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s);
+    // const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s);
+    // now should be 100% json
 
     console.log(responseText);
 
-    if (!editMatch || !summaryMatch) {
+    if (responseText) {
       throw new Error("Gemini responded, but the format was invalid...");
     }
 
-    let editedHTML = editMatch[1].trim();
-    const summary = summaryMatch[1].trim();
+    // let editedHTML = editMatch[1].trim();
+    // const summary = summaryMatch[1].trim();
 
-    editedHTML = editedHTML.replace(/^```html|```$/gm, "").trim();
+    const jsonString = responseText.replace(/^```json|```$/gm, "").trim();
     // editedHTML = editedHTML.replace(/(html|```)/g, "");
 
-    console.log(`REPLACED NEW HTML : \n${editedHTML}`);
+    // console.log(`REPLACED NEW HTML : \n${editedHTML}`);
+    let fullResponse;
 
-    return { editedHTML, summary };
+    try {
+      fullResponse = { ...JSON.parse(jsonString) } as RecipeResponse;
+    } catch (err) {
+      throw new Error("JSON response was not parse-able.");
+    }
+
+    return fullResponse;
   } catch (err) {
     return handleAPICallErr(err as string, "Failed to query Gemini API.");
   }
@@ -507,21 +566,29 @@ export const geminiPreliminaryMessage = async (
     console.log(responseText);
 
     // extract html section and summary section
-    const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s);
-    const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s);
+    // const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s);
+    // const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s);
 
-    if (!editMatch || !summaryMatch) {
-      throw new Error("Gemini's response to user's first message was invalid.");
+    // if (!editMatch || !summaryMatch) {
+    //   throw new Error("Gemini's response to user's first message was invalid.");
+    // }
+
+    // let editedHTML = editMatch[1].trim();
+    // const summary = summaryMatch[1].trim();
+
+    const loadableResp = responseText.replace(/^```json|```$/gm, "").trim();
+
+    let jsonResp;
+
+    try {
+      jsonResp = { ...JSON.parse(loadableResp) } as RecipeResponse;
+    } catch (err) {
+      throw new Error("Could not parse response from ai.");
     }
 
-    let editedHTML = editMatch[1].trim();
-    const summary = summaryMatch[1].trim();
+    // console.log(`REPLACED NEW HTML : \n${editedHTML}`);
 
-    editedHTML = editedHTML.replace(/^```html|```$/gm, "").trim();
-
-    console.log(`REPLACED NEW HTML : \n${editedHTML}`);
-
-    return { editedHTML, summary };
+    return jsonResp;
   } catch (err) {
     return handleAPICallErr(
       err as string,
