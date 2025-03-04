@@ -2,86 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
-
 :root {
-  --yes-chef-teal : #90d3d6;
-  --yes-chef-teal-light : rgba(175, 234, 237, 0.432);
-  --yes-chef-teal-dark : #74acaf;
+    --yes-chef-teal: #90d3d6;
+    --yes-chef-teal-light: rgba(175, 234, 237, 0.432);
+    --yes-chef-teal-dark: #74acaf;
 }
 
 html,
 body {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  /* font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; */
-  /* font-family:Verdana, Geneva, Tahoma, sans-serif; */
-  /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    /* font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; */
+    /* font-family:Verdana, Geneva, Tahoma, sans-serif; */
+    /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 *,
 *::before,
 *::after {
-  box-sizing: inherit;
+    box-sizing: inherit;
 }
 
 /* RECIPE CONTENT STYLINGS GENERAL */
 
 .rendered-recipe-content {
-  text-align: left;
+    text-align: left;
 }
 
 .rendered-recipe-content h1 {
-  @apply font-bold text-4xl my-2 underline;
+    @apply font-bold text-4xl my-2 underline;
 }
 
 .rendered-recipe-content h2 {
-  @apply font-bold text-3xl my-2;
+    @apply font-bold text-3xl my-2;
 }
 
 .rendered-recipe-content h3 {
-  @apply font-bold text-2xl my-2;
+    @apply font-bold text-2xl my-2;
 }
 
 .rendered-recipe-content ul {
-  @apply list-disc list-inside;
+    @apply list-disc list-inside;
 }
 
 .rendered-recipe-content ol {
-  @apply list-decimal list-inside;
+    @apply list-decimal list-inside;
+}
+
+.recipe-list-block ol,
+.recipe-list-block ul {
+    list-style-position: inside;
+    padding-left: 0;
 }
 
 .rendered-recipe-content li {
-  @apply list-item mx-4 my-1;
+    @apply list-item mx-4 my-1;
 }
 
+.recipe-list-block li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/*  */
+
 .rendered-recipe-content p {
-  @apply text-base text-gray-800 my-3;
+    @apply text-base text-gray-800 my-3;
 }
 
 .recently-edited-recipe-html {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 .header-logo-hexagon {
-  clip-path: polygon(
-      50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%
-    );
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }
 
 .logo-text {
-  /* -webkit-text-stroke: 2px var(--yes-chef-teal-dark); */
-  -webkit-text-stroke: 2px var(--yes-chef-teal-dark);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
-
+    /* -webkit-text-stroke: 2px var(--yes-chef-teal-dark); */
+    -webkit-text-stroke: 2px var(--yes-chef-teal-dark);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .surrounding-shadow {
-  box-shadow: 0 0 8px 5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 0 8px 5px rgba(0, 0, 0, 0.04);
 }
 
 .inner-shadow {
-  box-shadow: inner 0 0 10px 10px rgba(0, 0, 0, 0.03);
+    box-shadow: inner 0 0 10px 10px rgba(0, 0, 0, 0.03);
 }
