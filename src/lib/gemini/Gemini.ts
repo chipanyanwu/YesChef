@@ -515,9 +515,9 @@ export const queryGemini_2_0 = async (
 
     console.log(responseText);
 
-    if (responseText) {
-      throw new Error("Gemini responded, but the format was invalid...");
-    }
+    // if (responseText) {
+    //   throw new Error("Gemini responded, but the format was invalid...");
+    // }
 
     // let editedHTML = editMatch[1].trim();
     // const summary = summaryMatch[1].trim();

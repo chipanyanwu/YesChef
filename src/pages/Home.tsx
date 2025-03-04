@@ -1,3 +1,4 @@
+import RenderRecipe from "@/components/Recipe/RenderRecipe"
 import TSXFromStringRender from "@/components/TSXFromStringRender"
 
 import { useRecipe } from "@/context/RecipeContext"
@@ -12,7 +13,7 @@ function Home() {
   // home page arranged generally as side-by-side components, the chat and the recipe.
   return (
     <div
-      className="home-page w-screen h-screen grid gap-4 p-4 absolute top-0 left-0 border border-black"
+      className="home-page w-screen h-screen grid gap-4 p-4 absolute top-0 left-0 "
       style={{
         // 6 cols x 5 rows
         gridTemplateColumns: "repeat(6, 1fr)",
@@ -34,7 +35,13 @@ function Home() {
 
       {/* ACTUAL CHAT SECTION */}
 
-      <div className="col-span-2 row-span-5 ">
+      <div
+        className="col-span-2 row-span-5 "
+        style={{
+          gridColumn: isInit ? "2 / 6" : "1 / 3",
+          gridRow: isInit ? "3 / 5" : "2 / 7",
+        }}
+      >
         <div
           className="chat-window-container transition-all duration-1000 ease-in-out w-full h-full"
           // style={{
@@ -60,7 +67,7 @@ function Home() {
       {/* RENDERED RECIPE SECTION  */}
       {showRendering && (
         <div className="recipe-section surrounding-shadow col-start-3 col-end-7 row-span-full max-h-full overflow-y-auto border bg-white p-4 pl-10 pt-8 rounded-md animate-fadeIn">
-          <TSXFromStringRender cn="rendered-recipe-content" />
+          <RenderRecipe />
         </div>
       )}
     </div>
