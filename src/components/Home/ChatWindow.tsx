@@ -90,7 +90,6 @@ export const ChatWindow = () => {
 
     if ("speechSynthesis" in window) {
       const utterance = new SpeechSynthesisUtterance(newBotResponse);
-      utterance.voice = voices[1];
       utterance.lang = "en-US";
       window.speechSynthesis.speak(utterance);
     } else {
