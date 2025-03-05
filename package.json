@@ -21,6 +21,7 @@
     "clsx": "^2.1.1",
     "diff": "^7.0.0",
     "html-react-parser": "^5.2.2",
+    "jsdom": "^26.0.0",
     "lucide-react": "^0.475.0",
     "markdown-it": "^14.1.0",
     "marked": "^15.0.7",
