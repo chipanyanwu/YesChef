@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
-import { useRecipe } from "@/components/Layout/RecipeContext"
-import { geminiPreliminaryMessage, queryGemini_2_0 } from "@/lib/gemini/Gemini"
+import { useRecipe } from "../Layout/RecipeContext"
+import { queryGemini } from "@/lib/Gemini"
+import { ChatMessage } from "@/types/chats"
 import { Button } from "../ui/button"
 import { Textarea } from "../ui/textarea"
 import { ChatBubble } from "./ChatBubble"
@@ -22,7 +23,7 @@ export const ChatWindow = () => {
     isInit,
   } = useRecipe()
 
-  // Adjust the textarea height whenever the input content changes.
+  // Adjust textarea height when input changes.
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.style.height = "auto"
@@ -34,7 +35,7 @@ export const ChatWindow = () => {
     }
   }, [inputContent])
 
-  // Scroll to the latest message whenever the chat history updates.
+  // Auto-scroll to the latest message.
   useEffect(() => {
     if (chatHistory.length === 1 && isInit) {
       notInit()
@@ -48,7 +49,7 @@ export const ChatWindow = () => {
         setInputContent(spokenText)
       }
     },
-    [listening, CONTINUOUS_LISTENING]
+    [CONTINUOUS_LISTENING, listening]
   )
 
   const handleInputChange = useCallback((value: string) => {
@@ -59,7 +60,6 @@ export const ChatWindow = () => {
     if ("speechSynthesis" in window) {
       const voices = window.speechSynthesis.getVoices()
       const utterance = new SpeechSynthesisUtterance(message)
-      // Prefer a secondary voice if available
       utterance.voice = voices[1] || voices[0]
       utterance.lang = "en-US"
       window.speechSynthesis.speak(utterance)
@@ -71,35 +71,24 @@ export const ChatWindow = () => {
   const handleInputSubmit = useCallback(async () => {
     if (!inputContent.trim()) return
 
-    // Add the user message and update state.
-    setChatHistory((prev) => [...prev, { message: inputContent, role: "USER" }])
+    // Add user message.
+    setChatHistory((prev: ChatMessage[]) => [
+      ...prev,
+      { message: inputContent, role: "USER" },
+    ])
     setListening(false)
     setInputContent("")
     setGenerationState(true)
 
     try {
-      if (chatHistory.length <= 1) {
-        // First message: preliminary call.
-        const response = await geminiPreliminaryMessage(inputContent)
-        setChatHistory((prev) => [
-          ...prev,
-          { message: response.summary.content, role: "BOT" },
-        ])
-        updateRecipe(response)
-      } else {
-        // Subsequent messages.
-        const response = await queryGemini_2_0(
-          inputContent,
-          rawRecipe,
-          chatHistory
-        )
-        setChatHistory((prev) => [
-          ...prev,
-          { message: response.summary.content, role: "BOT" },
-        ])
-        speakMessage(response.summary.content)
-        updateRecipe(response)
-      }
+      // Always call the unified queryGemini function.
+      const response = await queryGemini(inputContent, rawRecipe, chatHistory)
+      setChatHistory((prev: ChatMessage[]) => [
+        ...prev,
+        { message: response.summary.content, role: "BOT" },
+      ])
+      speakMessage(response.summary.content)
+      updateRecipe(response)
     } catch (error) {
       console.error("Error during input submission", error)
     } finally {

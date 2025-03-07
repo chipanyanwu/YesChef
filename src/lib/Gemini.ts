@@ -1,8 +1,13 @@
-import { Gemini_2_0 } from "./gemini_config"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import { User } from "@/types/user"
 import { GenerateContentResult } from "@google/generative-ai"
 import { ChatMessage } from "@/types/chats"
 import { RecipeResponse } from "@/types/AIResponse"
+
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY
+const geminiFlash = new GoogleGenerativeAI(GEMINI_KEY).getGenerativeModel({
+  model: "gemini-2.0-flash",
+})
 
 function handleAPICallErr(err: string, message: string): RecipeResponse {
   console.error(`ERROR (${err}) OCCURRED WITH MESSAGE (${message})`)
@@ -40,6 +45,19 @@ function parseJSONResponse(responseText: string): RecipeResponse {
   } catch (err) {
     throw new Error("JSON response was not parse-able: " + err)
   }
+}
+
+function generateAppropriatePrompt(
+  query: string,
+  chatHistory: ChatMessage[],
+  currRecipe: RecipeResponse | null,
+  userData?: User
+): string {
+  if (!chatHistory || chatHistory.length === 0) {
+    return generateFirstMessagePrompt(query, userData)
+  }
+
+  return generatePrompt(query, chatHistory, userData, currRecipe)
 }
 
 function generatePrompt(
@@ -222,15 +240,22 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
     `
 }
 
-export const queryGemini_2_0 = async (
+export const queryGemini = async (
   query: string,
   currRecipe: RecipeResponse | null,
   chatHistory: ChatMessage[],
   userData?: User
 ): Promise<RecipeResponse> => {
-  const prompt = generatePrompt(query, chatHistory || [], userData, currRecipe)
+  const prompt = generateAppropriatePrompt(
+    query,
+    chatHistory,
+    currRecipe,
+    userData
+  )
   try {
-    const resp: GenerateContentResult = await Gemini_2_0.generateContent(prompt)
+    const resp: GenerateContentResult = await geminiFlash.generateContent(
+      prompt
+    )
     if (!resp) {
       throw new Error("Error occurred by API call.")
     }
@@ -238,32 +263,5 @@ export const queryGemini_2_0 = async (
     return parseJSONResponse(responseText)
   } catch (err) {
     return handleAPICallErr(err as string, "Failed to query Gemini API.")
-  }
-}
-
-export const geminiPreliminaryMessage = async (
-  firstMessage: string,
-  userData?: User
-) => {
-  const prompt = generateFirstMessagePrompt(
-    firstMessage,
-    userData || {
-      name: "No name is known",
-      email: "No email is known",
-      userId: "No userID to display",
-    }
-  )
-  try {
-    const resp: GenerateContentResult = await Gemini_2_0.generateContent(prompt)
-    if (!resp) {
-      throw new Error("Couldn't generate first response...")
-    }
-    const responseText = resp.response.text()
-    return parseJSONResponse(responseText)
-  } catch (err) {
-    return handleAPICallErr(
-      err as string,
-      "Error occurred during first message generation"
-    )
   }
 }
