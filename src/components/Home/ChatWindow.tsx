@@ -21,7 +21,6 @@ export const ChatWindow = () => {
     isInit,
   } = useRecipe()
 
-  // Adjust textarea height when content changes
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.style.height = "auto"
@@ -33,7 +32,6 @@ export const ChatWindow = () => {
     }
   }, [inputContent])
 
-  // Auto-scroll to the latest message
   useEffect(() => {
     if (chatHistory.length === 1 && isInit) {
       notInit()
@@ -41,12 +39,10 @@ export const ChatWindow = () => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [chatHistory, notInit, isInit])
 
-  // Update input content as the user speaks
   const handleInputChange = useCallback((value: string) => {
     setInputContent(value)
   }, [])
 
-  // Speech synthesis for bot responses
   const speakMessage = useCallback((message: string) => {
     if ("speechSynthesis" in window) {
       const voices = window.speechSynthesis.getVoices()
@@ -59,7 +55,6 @@ export const ChatWindow = () => {
     }
   }, [])
 
-  // Modified submit function which accepts an optional override text
   const handleInputSubmit = useCallback(
     async (overrideText?: string) => {
       const messageText =
@@ -107,7 +102,6 @@ export const ChatWindow = () => {
     }
   }
 
-  // Callback when VoiceControl auto-submits the voice transcript
   const handleVoiceSubmit = useCallback(
     (transcribedText: string) => {
       handleInputSubmit(transcribedText)
@@ -127,6 +121,7 @@ export const ChatWindow = () => {
             Paste a recipe, or start asking Chef some questions!
           </p>
         )}
+        {generationState && <ChatBubble loading key="loading" />}
         <div ref={endOfMessagesRef} />
       </div>
 
@@ -140,13 +135,11 @@ export const ChatWindow = () => {
           disabled={generationState}
           onKeyDown={handleKeyDown}
         />
-
         <VoiceControl
           onTranscription={handleInputChange}
           onSubmit={handleVoiceSubmit}
           disabled={generationState}
         />
-
         <Button
           variant="default"
           className="bg-app_teal hover:bg-app_teal_dark h-[60px] w-[15%] object-contain"
