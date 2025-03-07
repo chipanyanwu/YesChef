@@ -8,12 +8,10 @@ import { ChatBubble } from "./ChatBubble"
 import VoiceControl from "./VoiceControl"
 
 export const ChatWindow = () => {
-  const CONTINUOUS_LISTENING = false
-  const [listening, setListening] = useState(false)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  const endOfMessagesRef = useRef<HTMLDivElement>(null)
   const [inputContent, setInputContent] = useState("")
   const [generationState, setGenerationState] = useState(false)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const endOfMessagesRef = useRef<HTMLDivElement>(null)
   const {
     updateRecipe,
     rawRecipe,
@@ -23,7 +21,7 @@ export const ChatWindow = () => {
     isInit,
   } = useRecipe()
 
-  // Adjust textarea height when input changes.
+  // Adjust textarea height when content changes
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.style.height = "auto"
@@ -35,7 +33,7 @@ export const ChatWindow = () => {
     }
   }, [inputContent])
 
-  // Auto-scroll to the latest message.
+  // Auto-scroll to the latest message
   useEffect(() => {
     if (chatHistory.length === 1 && isInit) {
       notInit()
@@ -43,19 +41,12 @@ export const ChatWindow = () => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [chatHistory, notInit, isInit])
 
-  const handleVoiceTranscription = useCallback(
-    (spokenText: string) => {
-      if (listening || !CONTINUOUS_LISTENING) {
-        setInputContent(spokenText)
-      }
-    },
-    [CONTINUOUS_LISTENING, listening]
-  )
-
+  // Update input content as the user speaks
   const handleInputChange = useCallback((value: string) => {
     setInputContent(value)
   }, [])
 
+  // Speech synthesis for bot responses
   const speakMessage = useCallback((message: string) => {
     if ("speechSynthesis" in window) {
       const voices = window.speechSynthesis.getVoices()
@@ -68,40 +59,43 @@ export const ChatWindow = () => {
     }
   }, [])
 
-  const handleInputSubmit = useCallback(async () => {
-    if (!inputContent.trim()) return
+  // Modified submit function which accepts an optional override text
+  const handleInputSubmit = useCallback(
+    async (overrideText?: string) => {
+      const messageText =
+        overrideText !== undefined ? overrideText : inputContent
+      if (!messageText.trim()) return
 
-    // Add user message.
-    setChatHistory((prev: ChatMessage[]) => [
-      ...prev,
-      { message: inputContent, role: "USER" },
-    ])
-    setListening(false)
-    setInputContent("")
-    setGenerationState(true)
-
-    try {
-      // Always call the unified queryGemini function.
-      const response = await queryGemini(inputContent, rawRecipe, chatHistory)
       setChatHistory((prev: ChatMessage[]) => [
         ...prev,
-        { message: response.summary.content, role: "BOT" },
+        { message: messageText, role: "USER" },
       ])
-      speakMessage(response.summary.content)
-      updateRecipe(response)
-    } catch (error) {
-      console.error("Error during input submission", error)
-    } finally {
-      setGenerationState(false)
-    }
-  }, [
-    inputContent,
-    chatHistory,
-    rawRecipe,
-    setChatHistory,
-    updateRecipe,
-    speakMessage,
-  ])
+      setInputContent("")
+      setGenerationState(true)
+
+      try {
+        const response = await queryGemini(messageText, rawRecipe, chatHistory)
+        setChatHistory((prev: ChatMessage[]) => [
+          ...prev,
+          { message: response.summary.content, role: "BOT" },
+        ])
+        speakMessage(response.summary.content)
+        updateRecipe(response)
+      } catch (error) {
+        console.error("Error during input submission", error)
+      } finally {
+        setGenerationState(false)
+      }
+    },
+    [
+      inputContent,
+      chatHistory,
+      rawRecipe,
+      setChatHistory,
+      updateRecipe,
+      speakMessage,
+    ]
+  )
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -113,7 +107,13 @@ export const ChatWindow = () => {
     }
   }
 
-  const toggleListening = () => setListening((prev) => !prev)
+  // Callback when VoiceControl auto-submits the voice transcript
+  const handleVoiceSubmit = useCallback(
+    (transcribedText: string) => {
+      handleInputSubmit(transcribedText)
+    },
+    [handleInputSubmit]
+  )
 
   return (
     <div className="shadow-inner w-full h-full bg-white rounded-lg py-3 px-4 relative overflow-y-auto border">
@@ -142,22 +142,26 @@ export const ChatWindow = () => {
         />
 
         <VoiceControl
-          isListening={listening}
-          toggleListening={toggleListening}
-          onTranscription={handleVoiceTranscription}
+          onTranscription={handleInputChange}
+          onSubmit={handleVoiceSubmit}
           disabled={generationState}
-          continuous={CONTINUOUS_LISTENING}
         />
 
         <Button
           variant="default"
           className="bg-app_teal hover:bg-app_teal_dark h-[60px] w-[15%] object-contain"
-          onClick={handleInputSubmit}
+          onClick={() => handleInputSubmit()}
           disabled={generationState}
         >
-          <img src={`/vectors/chef-hat-and-spatula.svg`} className="h-full" />
+          <img
+            src={`/vectors/chef-hat-and-spatula.svg`}
+            className="h-full"
+            alt="Submit"
+          />
         </Button>
       </div>
     </div>
   )
 }
+
+export default ChatWindow
