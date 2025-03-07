@@ -1,4 +1,4 @@
-import { RecipeResponse } from "@/types/AIResponse"
+import { RecipeResponse } from "@/types/recipeResponse"
 import { ChatMessage } from "@/types/chats"
 import {
   createContext,
