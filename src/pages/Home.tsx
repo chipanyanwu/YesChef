@@ -1,4 +1,5 @@
-import RenderRecipe from "@/components/Home/Recipe/RenderRecipe"
+// import RenderRecipe from "@/components/Home/Recipe/RenderRecipe"
+import RenderRecipe from "@/components/Home/RenderRecipe"
 import { useRecipe } from "@/components/Layout/RecipeContext"
 import { ChatWindow } from "../components/Home/ChatWindow"
 
