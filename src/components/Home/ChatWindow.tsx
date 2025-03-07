@@ -1,24 +1,18 @@
-import { useEffect, useRef, useState } from "react"
-import { useRecipe } from "@/context/RecipeContext"
+import { useEffect, useRef, useState, useCallback } from "react"
+import { useRecipe } from "@/components/Layout/RecipeContext"
 import { geminiPreliminaryMessage, queryGemini_2_0 } from "@/lib/gemini/Gemini"
-import { ChatMessage } from "@/types/chats"
 import { Button } from "../ui/button"
 import { Textarea } from "../ui/textarea"
 import { ChatBubble } from "./ChatBubble"
-import VoiceControl from "../VoiceControl"
+import VoiceControl from "./VoiceControl"
 
 export const ChatWindow = () => {
-  // When set to true, mic stays on until user turns it back off
-  // When set to false, mic turns off after user doesn't speak for a while
-  const continuousListeningMode = false
-
-  const [listening, setListening] = useState<boolean>(false)
+  const CONTINUOUS_LISTENING = false
+  const [listening, setListening] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const endOfMessagesRef = useRef<HTMLDivElement>(null)
   const [inputContent, setInputContent] = useState("")
-  // const voices = window.speechSynthesis.getVoices();
   const [generationState, setGenerationState] = useState(false)
-  const textAreaMaxHeightPx = 275
   const {
     updateRecipe,
     rawRecipe,
@@ -28,81 +22,19 @@ export const ChatWindow = () => {
     isInit,
   } = useRecipe()
 
-  const handleVoiceTranscription = (spokenText: string) => {
-    if (listening || !continuousListeningMode) {
-      setInputContent(spokenText)
-    }
-  }
-
-  const adjustTextAreaHeight = () => {
+  // Adjust the textarea height whenever the input content changes.
+  useEffect(() => {
     if (inputRef.current) {
+      inputRef.current.style.height = "auto"
       inputRef.current.style.height = "auto"
       inputRef.current.style.height = `${Math.min(
         inputRef.current.scrollHeight,
-        textAreaMaxHeightPx
+        275
       )}px`
-    }
-  }
-
-  function handleInputChange(curr: string) {
-    setInputContent(curr)
-  }
-
-  async function handleInputSubmit() {
-    if (!inputContent) return
-
-    // add user message
-    setChatHistory((prev: ChatMessage[]) => [
-      ...prev,
-      { message: inputContent, role: "USER" },
-    ])
-    setListening(false)
-    setInputContent("")
-    setGenerationState(true)
-
-    const query = inputContent
-    // FIRST MESSAGE: use geminiPreliminaryMessage
-    if (chatHistory.length <= 1) {
-      const response = await geminiPreliminaryMessage(query)
-      setGenerationState(false)
-      setChatHistory((prev: ChatMessage[]) => [
-        ...prev,
-        { message: response.summary.content, role: "BOT" },
-      ])
-      updateRecipe(response)
-      return
-    }
-
-    // Subsequent messages: use queryGemini_2_0
-    const response = await queryGemini_2_0(query, rawRecipe, chatHistory)
-    let updatedRecipe = rawRecipe
-    // let newBotResponse = "Sorry, something went wrong on my end, try asking again in a second?";
-    const newBotResponse = response.summary.content
-    updatedRecipe = response
-
-    setGenerationState(false)
-    setChatHistory((prev: ChatMessage[]) => [
-      ...prev,
-      { message: newBotResponse, role: "BOT" },
-    ])
-
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(newBotResponse)
-      utterance.lang = "en-US"
-      window.speechSynthesis.speak(utterance)
-    } else {
-      console.warn("Speech synthesis api not supported in this browser.")
-    }
-
-    updateRecipe(updatedRecipe)
-  }
-
-  useEffect(() => {
-    if (inputRef.current) {
-      adjustTextAreaHeight()
     }
   }, [inputContent])
 
+  // Scroll to the latest message whenever the chat history updates.
   useEffect(() => {
     if (chatHistory.length === 1 && isInit) {
       notInit()
@@ -110,7 +42,79 @@ export const ChatWindow = () => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [chatHistory, notInit, isInit])
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+  const handleVoiceTranscription = useCallback(
+    (spokenText: string) => {
+      if (listening || !CONTINUOUS_LISTENING) {
+        setInputContent(spokenText)
+      }
+    },
+    [listening, CONTINUOUS_LISTENING]
+  )
+
+  const handleInputChange = useCallback((value: string) => {
+    setInputContent(value)
+  }, [])
+
+  const speakMessage = useCallback((message: string) => {
+    if ("speechSynthesis" in window) {
+      const voices = window.speechSynthesis.getVoices()
+      const utterance = new SpeechSynthesisUtterance(message)
+      // Prefer a secondary voice if available
+      utterance.voice = voices[1] || voices[0]
+      utterance.lang = "en-US"
+      window.speechSynthesis.speak(utterance)
+    } else {
+      console.warn("Speech synthesis API not supported in this browser.")
+    }
+  }, [])
+
+  const handleInputSubmit = useCallback(async () => {
+    if (!inputContent.trim()) return
+
+    // Add the user message and update state.
+    setChatHistory((prev) => [...prev, { message: inputContent, role: "USER" }])
+    setListening(false)
+    setInputContent("")
+    setGenerationState(true)
+
+    try {
+      if (chatHistory.length <= 1) {
+        // First message: preliminary call.
+        const response = await geminiPreliminaryMessage(inputContent)
+        setChatHistory((prev) => [
+          ...prev,
+          { message: response.summary.content, role: "BOT" },
+        ])
+        updateRecipe(response)
+      } else {
+        // Subsequent messages.
+        const response = await queryGemini_2_0(
+          inputContent,
+          rawRecipe,
+          chatHistory
+        )
+        setChatHistory((prev) => [
+          ...prev,
+          { message: response.summary.content, role: "BOT" },
+        ])
+        speakMessage(response.summary.content)
+        updateRecipe(response)
+      }
+    } catch (error) {
+      console.error("Error during input submission", error)
+    } finally {
+      setGenerationState(false)
+    }
+  }, [
+    inputContent,
+    chatHistory,
+    rawRecipe,
+    setChatHistory,
+    updateRecipe,
+    speakMessage,
+  ])
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       handleInputSubmit()
@@ -134,7 +138,7 @@ export const ChatWindow = () => {
             Paste a recipe, or start asking Chef some questions!
           </p>
         )}
-        <div className="scrollTo-ref" ref={endOfMessagesRef} />
+        <div ref={endOfMessagesRef} />
       </div>
 
       <div className="user-input-field absolute bottom-2 w-full -ml-4 p-2 flex justify-center items-end gap-3 z-30">
@@ -143,25 +147,21 @@ export const ChatWindow = () => {
           placeholder="Ask Chef..."
           ref={inputRef}
           value={inputContent}
-          onChange={(e) => {
-            e.preventDefault()
-            handleInputChange(e.target.value)
-          }}
+          onChange={(e) => handleInputChange(e.target.value)}
           disabled={generationState}
           onKeyDown={handleKeyDown}
         />
 
-        {/* The VoiceControl component now handles speech-to-text */}
         <VoiceControl
           isListening={listening}
           toggleListening={toggleListening}
           onTranscription={handleVoiceTranscription}
           disabled={generationState}
-          continuous={continuousListeningMode}
+          continuous={CONTINUOUS_LISTENING}
         />
 
         <Button
-          variant={"default"}
+          variant="default"
           className="bg-app_teal hover:bg-app_teal_dark h-[60px] w-[15%] object-contain"
           onClick={handleInputSubmit}
           disabled={generationState}

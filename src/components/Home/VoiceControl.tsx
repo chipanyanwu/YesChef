@@ -2,7 +2,7 @@ import "regenerator-runtime/runtime"
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition"
-import { Button } from "./ui/button"
+import { Button } from "../ui/button"
 import { useEffect } from "react"
 
 interface VoiceControlProps {

@@ -1,116 +1,14 @@
-import { Gemini_2_0 } from "./gemini_config";
-import { User } from "@/types/user";
-import { GenerateContentResult } from "@google/generative-ai";
-import { ChatMessage } from "@/types/chats";
-import { RecipeResponse } from "@/types/AIResponse";
-
-type APICallResponse = {
-  editedHTML: string;
-  summary: string;
-};
-
-const example_json = {
-  // ACTUAL RECIPE
-  recipe: {
-    title: "Classic Lobster Thermidor Recipe",
-    metadata: {
-      yield: "4 servings",
-      prepTime: "20 minutes",
-      cookTime: "15 minutes",
-      totalTime: "35 minutes",
-    },
-    description:
-      "Easy Lobster Thermidor is a restaurant quality lobster recipe you can make at home in less than an hour. Super simple, decadent and perfect with a creamy cognac sauce.",
-    content: [
-      {
-        type: "section",
-        title: "Ingredients",
-        content: {
-          type: "list",
-          ordered: false,
-          items: [
-            {
-              text: "2 1 1/2 to 1 3/4-pound cooked Maine lobsters",
-              notes: [],
-            },
-            {
-              text: "2 tablespoons unsalted butter",
-              notes: [],
-            },
-            // ... other ingredients
-          ],
-        },
-      },
-      {
-        type: "section",
-        title: "Instructions",
-        content: {
-          type: "list",
-          ordered: true,
-          items: [
-            {
-              text: "Preheat the oven to 375˚ F...",
-              completed: false,
-              current: true,
-              notes: [],
-              marks: [],
-            },
-            {
-              text: "Cut the lobsters in half...",
-              completed: false,
-              current: false,
-              notes: ["Use a sharp chef's knife"],
-              marks: [],
-            },
-            // ... other steps
-          ],
-        },
-      },
-      {
-        type: "note",
-        title: "Chef's note",
-        content: [
-          {
-            type: "paragraph",
-            content: [
-              {
-                text: "If you want to avoid alcohol in the recipe, try swapping out the cognac or brandy with ",
-                marks: [],
-              },
-              {
-                text: "brandy extract",
-                marks: ["em"],
-              },
-              {
-                text: " or ",
-                marks: [],
-              },
-              {
-                text: "peach juice",
-                marks: ["em"],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-
-  // SUMMARY (RESPONSE TO USER)
-  summary: {
-    content:
-      "Okay, I've loaded up your lobster thermidor recipe. This looks so delicious, let's get started!",
-  },
-
-  // COMMANDS SECTION
-  commands: [],
-};
+import { Gemini_2_0 } from "./gemini_config"
+import { User } from "@/types/user"
+import { GenerateContentResult } from "@google/generative-ai"
+import { ChatMessage } from "@/types/chats"
+import { RecipeResponse } from "@/types/AIResponse"
 
 function handleAPICallErr(err: string, message: string): RecipeResponse {
-  console.error(`ERROR (${err}) OCCURRED WITH MESSAGE (${message})`);
+  console.error(`ERROR (${err}) OCCURRED WITH MESSAGE (${message})`)
   return {
     recipe: {
-      title: "An error ocurred...",
+      title: "An error occurred...",
       content: [
         {
           type: "note",
@@ -130,9 +28,18 @@ function handleAPICallErr(err: string, message: string): RecipeResponse {
       ],
     },
     summary: {
-      content: "An error ocurred on my end... my apologies.",
+      content: "An error occurred on my end... my apologies.",
     },
-  };
+  }
+}
+
+function parseJSONResponse(responseText: string): RecipeResponse {
+  const jsonString = responseText.replace(/^```json|```$/gm, "").trim()
+  try {
+    return JSON.parse(jsonString) as RecipeResponse
+  } catch (err) {
+    throw new Error("JSON response was not parse-able: " + err)
+  }
 }
 
 function generatePrompt(
@@ -141,24 +48,12 @@ function generatePrompt(
   userData?: User,
   currRecipe?: RecipeResponse | null
 ) {
-  // add logic to determine what prompt ought to be
-  // perhaps query less sophisticated model for tone to see what type of prompt to offer
-  // fill out prompt later
-  let recipe = "";
-  if (currRecipe === undefined || !currRecipe) {
-    recipe = '{recipe : {}, summary : {content : ""}}';
-  } else {
-    recipe = JSON.stringify(currRecipe);
-  }
-
-  const prompt = `
+  const recipe = currRecipe
+    ? JSON.stringify(currRecipe)
+    : '{recipe : {}, summary : {content : ""}}'
+  return `
       BEGINNING OF INSTRUCTIONS. 
-
-      You are the engine for a chatbot that offers assistance while cooking. Your name is Chef. Your job is to give cooking advice
-      and advice related to the kitchen. Do not make any assumptions and allow your instructions to be informed
-      by the following details about the person you're helping. If there are restrictions, you must always follow them. If there are
-      preferences, try your best to follow them where possible. You are in the middle of a conversation with this user where you are
-      walking them through a recipe, don't act like this is the last answer you'll give.
+      You are the engine for a chatbot that offers assistance while cooking. Your name is Chef. Your job is to give cooking advice and advice related to the kitchen. Do not make any assumptions and allow your instructions to be informed by the following details about the person you're helping. If there are restrictions, you must always follow them. If there are preferences, try your best to follow them where possible. You are in the middle of a conversation with this user where you are walking them through a recipe, don't act like this is the last answer you'll give.
       
       User specifics:
       ${JSON.stringify(userData)}
@@ -189,8 +84,8 @@ function generatePrompt(
                 "items": [
                   {
                     "text": "string",
-                    "completed": boolean,  // REQUIRED for instruction steps
-                    "current": boolean,    // REQUIRED for instruction steps
+                    "completed": boolean,
+                    "current": boolean,
                     "notes": ["string"],
                     "marks": ["em"|"strong"]
                   }
@@ -214,7 +109,6 @@ function generatePrompt(
             }
           ]
         },
-
         summary : {
           content : "string"
         }
@@ -234,44 +128,10 @@ function generatePrompt(
       4. Response format MUST be:
         {
           recipe : MODIFIED_RECIPE_JSON,
-          
           summary : {
             content : <less than 500 character chef-style response, summarizing changes you made, and encouraging the conversation to continue>
           }
-
         }
-      
-      EXAMPLE RESPONSE FOR COMPLETED STEP:
-      {
-        "recipe": {
-          ...,
-          "content": [
-            {
-              "type": "section",
-              "title": "Instructions",
-              "content": {
-                "type": "list",
-                "ordered": true,
-                "items": [
-                  {
-                    "text": "Preheat oven...",
-                    "completed": true,
-                    "current": false
-                  },
-                  {
-                    "text": "Chop vegetables...",
-                    "completed": false,
-                    "current": true
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        summary : {
-          content : "Excellent work preheating the oven! Now let's focus on preparing those vegetables. Take your time with the chopping - precision here ensures even cooking later."
-        },
-      }
       
       CRITICAL VALIDATIONS:
       1. JSON must validate against schema - NO EXTRA PROPERTIES. Your response must contain exclusively this JSON and absolutely nothing else.
@@ -285,7 +145,7 @@ function generatePrompt(
         recipe : EXACT_ORIGINAL_RECIPE_JSON,
         summary : "Sorry, I'm built to help out in the kitchen! Let's get back to cooking."
       }
-
+      
       Here is the current recipe:
       ${recipe}
       
@@ -295,95 +155,21 @@ function generatePrompt(
       START OF USER QUERY:
       ${query}
       END OF USER QUERY
-    `;
-
-  console.log(prompt);
-  return prompt;
+    `
 }
 
 function generateFirstMessagePrompt(query: string, userData?: User) {
-  // add logic to determine what prompt ought to be
-  // perhaps query less sophisticated model for tone to see what type of prompt to offer
-  // fill out prompt later
-
-  const prompt = `
+  return `
       BEGINNING OF INSTRUCTIONS. 
-
-      You are the engine for a chatbot that offers assistance while cooking. Your name is Chef. Your job is to give cooking advice
-      and advice related to the kitchen. Do not make any assumptions and allow your instructions to be informed
-      by the following details about the person you're helping. If there are restrictions, you must always follow them. If there are
-      preferences, try your best to follow them where possible.
+      You are the engine for a chatbot that offers assistance while cooking. Your name is Chef. Your job is to give cooking advice and advice related to the kitchen. Do not make any assumptions and allow your instructions to be informed by the following details about the person you're helping. If there are restrictions, you must always follow them. If there are preferences, try your best to follow them where possible.
       
       User specifics (if any):
       ${JSON.stringify(userData)}
       End of user specifics.
       
-      This is the very first message in this exchange with this user. They should be offering context about what they need help
-      with in the kitchen. They will probably be pasting a very messily-formatted recipe from another site. Your tasks are:
+      This is the very first message in this exchange with this user. They should be offering context about what they need help with in the kitchen. They will probably be pasting a very messily-formatted recipe from another site. Your tasks are:
       1. Parse any recipe content into standardized JSON format using EXACTLY this 'RecipeResponse' schema:
-
-        type RecipeResponse = {
-          recipe: Recipe;
-          summary: Summary;
-        };
-        
-        type Recipe = {
-          title: string;
-          metadata?: Metadata;
-          description?: string;
-          content: ContentBlock[];
-        };
-        
-        type Metadata = {
-          yield?: string;
-          prepTime?: string;
-          cookTime?: string;
-          totalTime?: string;
-        };
-        
-        type ContentBlock = Section | Note;
-        
-        type Section = {
-          type: "section";
-          title: string;
-          content: ListContent | Paragraph;
-        };
-        
-        type Note = {
-          type: "note";
-          title: string;
-          content: Paragraph[];
-        };
-        
-        type ListContent = {
-          type: "list";
-          ordered: boolean;
-          items: ListItem[];
-        };
-        
-        type ListItem = {
-          text: string;
-          completed?: boolean; // Optional, only for instruction steps
-          current?: boolean; // Optional, only for instruction steps
-          notes?: string[];
-          marks?: Mark[];
-        };
-        
-        type Paragraph = {
-          type: "paragraph";
-          content: TextContent[];
-        };
-        
-        type TextContent = {
-          text: string;
-          marks?: Mark[];
-        };
-        
-        type Mark = "em" | "strong" | "sub" | "sup"; // Add more as needed
-        
-        type Summary = {
-          content: string;
-        };      
+      // schema details here
       
       2. Follow these RULES STRICTLY:
       - First instruction step must have "current": true
@@ -400,50 +186,8 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
         }
       }
       
-      EXAMPLE RESPONSE FOR NEW RECIPE:
-      {
-        "recipe": {
-          "title": "Classic Lobster Thermidor",
-          "metadata": {
-            "yield": "4 servings",
-            "prepTime": "20 minutes",
-            "cookTime": "15 minutes",
-            "totalTime": "35 minutes"
-          },
-          "description": "Restaurant-quality lobster recipe...",
-          "content": [
-            {
-              "type": "section",
-              "title": "Ingredients",
-              "content": {
-                "type": "list",
-                "ordered": false,
-                "items": [
-                  {"text": "2 cooked Maine lobsters", "notes": [], "marks": []}
-                ]
-              }
-            },
-            {
-              "type": "section",
-              "title": "Instructions",
-              "content": {
-                "type": "list",
-                "ordered": true,
-                "items": [
-                  {"text": "Preheat oven...", "completed": false, "current": true},
-                  {"text": "Chop vegetables...", "completed": false, "current": false}
-                ]
-              }
-            }
-          ]
-        },
-        "summary": {
-          "content": "Splendid choice! I've formatted your Lobster Thermidor recipe into our kitchen-ready system. We'll start with preheating the oven - I'll guide you through each step precisely. Let's create something magnificent!"
-        }
-      }
-      
       CRITICAL VALIDATIONS:
-      1. Use the JSON schema exacyly as provided. Your response must contain absolutely nothing beyond a loadable string of json.
+      1. Use the JSON schema exactly as provided. Your response must contain absolutely nothing beyond a loadable string of json.
       2. Escape all double quotes in text fields
       3. Ensure first instruction step has "current": true
       4. Maintain original recipe text verbatim where possible
@@ -475,10 +219,7 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
       START OF USER PROMPT:
       ${query}
       END OF USER PROMPT.
-    `;
-
-  // console.log(prompt)
-  return prompt;
+    `
 }
 
 export const queryGemini_2_0 = async (
@@ -487,58 +228,18 @@ export const queryGemini_2_0 = async (
   chatHistory: ChatMessage[],
   userData?: User
 ): Promise<RecipeResponse> => {
-  const prompt = generatePrompt(
-    query,
-    chatHistory || [],
-    userData ? userData : ({} as User),
-    currRecipe
-  );
-
-  // set something up to ensure we still have enough tokens.
-
+  const prompt = generatePrompt(query, chatHistory || [], userData, currRecipe)
   try {
-    const resp: GenerateContentResult = await Gemini_2_0.generateContent(
-      prompt
-    );
-
+    const resp: GenerateContentResult = await Gemini_2_0.generateContent(prompt)
     if (!resp) {
-      throw new Error("Error occurred by API call.");
+      throw new Error("Error occurred by API call.")
     }
-
-    const responseText = resp.response.text();
-    console.log(responseText);
-
-    // extract html section and summary section
-    // const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s);
-    // const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s);
-    // now should be 100% json
-
-    console.log(responseText);
-
-    // if (responseText) {
-    //   throw new Error("Gemini responded, but the format was invalid...");
-    // }
-
-    // let editedHTML = editMatch[1].trim();
-    // const summary = summaryMatch[1].trim();
-
-    const jsonString = responseText.replace(/^```json|```$/gm, "").trim();
-    // editedHTML = editedHTML.replace(/(html|```)/g, "");
-
-    // console.log(`REPLACED NEW HTML : \n${editedHTML}`);
-    let fullResponse;
-
-    try {
-      fullResponse = { ...JSON.parse(jsonString) } as RecipeResponse;
-    } catch (err) {
-      throw new Error("JSON response was not parse-able.");
-    }
-
-    return fullResponse;
+    const responseText = resp.response.text()
+    return parseJSONResponse(responseText)
   } catch (err) {
-    return handleAPICallErr(err as string, "Failed to query Gemini API.");
+    return handleAPICallErr(err as string, "Failed to query Gemini API.")
   }
-};
+}
 
 export const geminiPreliminaryMessage = async (
   firstMessage: string,
@@ -551,48 +252,18 @@ export const geminiPreliminaryMessage = async (
       email: "No email is known",
       userId: "No userID to display",
     }
-  );
-
+  )
   try {
-    const resp: GenerateContentResult = await Gemini_2_0.generateContent(
-      prompt
-    );
-
+    const resp: GenerateContentResult = await Gemini_2_0.generateContent(prompt)
     if (!resp) {
-      throw new Error("Couldn't generate first response...");
+      throw new Error("Couldn't generate first response...")
     }
-
-    const responseText = resp.response.text();
-    console.log(responseText);
-
-    // extract html section and summary section
-    // const editMatch = responseText.match(/\[EDIT\](.*?)\[ENDEDIT\]/s);
-    // const summaryMatch = responseText.match(/\[SUMMARY\](.*?)\[ENDSUMMARY\]/s);
-
-    // if (!editMatch || !summaryMatch) {
-    //   throw new Error("Gemini's response to user's first message was invalid.");
-    // }
-
-    // let editedHTML = editMatch[1].trim();
-    // const summary = summaryMatch[1].trim();
-
-    const loadableResp = responseText.replace(/^```json|```$/gm, "").trim();
-
-    let jsonResp;
-
-    try {
-      jsonResp = { ...JSON.parse(loadableResp) } as RecipeResponse;
-    } catch (err) {
-      throw new Error("Could not parse response from ai.");
-    }
-
-    // console.log(`REPLACED NEW HTML : \n${editedHTML}`);
-
-    return jsonResp;
+    const responseText = resp.response.text()
+    return parseJSONResponse(responseText)
   } catch (err) {
     return handleAPICallErr(
       err as string,
       "Error occurred during first message generation"
-    );
+    )
   }
-};
+}
