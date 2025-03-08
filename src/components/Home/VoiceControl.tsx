@@ -2,23 +2,19 @@ import "regenerator-runtime/runtime"
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition"
-import { Button } from "./ui/button"
-import { useEffect } from "react"
+import { Button } from "../ui/button"
+import { useEffect, useRef } from "react"
 
 interface VoiceControlProps {
-  isListening: boolean
-  toggleListening: () => void
   onTranscription: (spokenText: string) => void
   disabled: boolean
-  continuous?: boolean
+  onSubmit: (transcribedText: string) => void
 }
 
 const VoiceControl = ({
-  isListening,
-  toggleListening,
   onTranscription,
   disabled,
-  continuous = false,
+  onSubmit,
 }: VoiceControlProps) => {
   const {
     transcript,
@@ -27,29 +23,7 @@ const VoiceControl = ({
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition()
 
-  useEffect(() => {
-    if (continuous) {
-      if (isListening && !listening) {
-        resetTranscript()
-        SpeechRecognition.startListening({ continuous: continuous })
-      } else if (!isListening && listening) {
-        SpeechRecognition.stopListening()
-      }
-    }
-  }, [continuous, isListening, listening, resetTranscript])
-
-  useEffect(() => {
-    if (listening) {
-      onTranscription(transcript)
-    }
-  }, [listening, onTranscription, transcript])
-
   const toggle = () => {
-    if (continuous) {
-      toggleListening()
-      return
-    }
-
     if (listening) {
       SpeechRecognition.stopListening()
     } else {
@@ -58,11 +32,27 @@ const VoiceControl = ({
     }
   }
 
+  useEffect(() => {
+    if (listening) {
+      onTranscription(transcript)
+    }
+  }, [listening, transcript, onTranscription])
+
+  const prevListeningRef = useRef(listening)
+  useEffect(() => {
+    if (prevListeningRef.current && !listening) {
+      if (transcript.trim() !== "") {
+        onSubmit(transcript)
+      }
+    }
+    prevListeningRef.current = listening
+  }, [listening, transcript, onSubmit])
+
   return (
     <>
       {browserSupportsSpeechRecognition && (
         <Button
-          variant={"default"}
+          variant="default"
           onClick={toggle}
           className="bg-app_teal hover:bg-app_teal_dark h-[60px] w-[15%] object-contain"
           disabled={disabled}
