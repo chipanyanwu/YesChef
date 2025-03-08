@@ -22,13 +22,15 @@ const VoiceControl = ({
     resetTranscript,
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition()
+  const debounceTimerRef = useRef<number | null>(null);
 
   const toggle = () => {
+    if (disabled) return
     if (listening) {
       SpeechRecognition.stopListening()
     } else {
       resetTranscript()
-      SpeechRecognition.startListening()
+      SpeechRecognition.startListening({ continuous: true })
     }
   }
 
@@ -38,15 +40,42 @@ const VoiceControl = ({
     }
   }, [listening, transcript, onTranscription])
 
-  const prevListeningRef = useRef(listening)
+  // const prevListeningRef = useRef(listening)
+  // useEffect(() => {
+  //   if (prevListeningRef.current && !listening) {
+  //     if (transcript.trim() !== "") {
+  //       onSubmit(transcript)
+  //     }
+  //   }
+  //   prevListeningRef.current = listening
+  // }, [listening, transcript, onSubmit])
+
   useEffect(() => {
-    if (prevListeningRef.current && !listening) {
-      if (transcript.trim() !== "") {
-        onSubmit(transcript)
-      }
+    if (listening) {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = window.setTimeout(() => {
+        if (transcript.trim() !== "") {
+          onSubmit(transcript);
+          resetTranscript();
+        }
+      }, 2000);
     }
-    prevListeningRef.current = listening
-  }, [listening, transcript, onSubmit])
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, [transcript, listening, onSubmit, resetTranscript]);
+
+  useEffect(() => {
+    if (disabled && listening) {
+      SpeechRecognition.stopListening()
+    }
+  }, [disabled, listening])
+
+  // useEffect(() => {
+  //   if (!disabled && !listening) {
+  //     SpeechRecognition.startListening({ continuous: true })
+  //   }
+  // }, [disabled, listening])
 
   return (
     <>
