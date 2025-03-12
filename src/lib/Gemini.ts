@@ -83,18 +83,18 @@ function generatePrompt(
       1. Edit the recipe JSON based on the user's request using EXACTLY this schema:
       {
         "recipe": {
-          "title": "string",
+          "title": string,
           "metadata": {
-            "yield": "string",
-            "prepTime": "string",
-            "cookTime": "string",
-            "totalTime": "string"
+            "yield": string,
+            "prepTime": string,
+            "cookTime": string,
+            "totalTime": string
           },
-          "description": "string",
+          "description": string,
           "ingredients": {
             "items": [
               {
-                "text": "string",
+                "text": string,
                 "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
               }
             ]
@@ -102,20 +102,20 @@ function generatePrompt(
           "instructions": {
             "items": [
               {
-                "text": "string",
+                "text": string,
                 "completed": boolean,
                 "current": boolean,
-                "notes": ["string"],
+                "notes": string[],
                 "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
               }
             ]
           },
           "notes": [
             {
-              "title": "string",
+              "title": string,
               "content": [
                 {
-                  "text": "string",
+                  "text": string,
                   "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
                 }
               ]
@@ -123,7 +123,7 @@ function generatePrompt(
           ]
         },
         "summary": {
-          "content": "string"
+          "content": string
         }
       }
       
@@ -206,18 +206,18 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
       1. Parse any recipe content into standardized JSON format using EXACTLY this 'RecipeResponse' schema:
       {
         "recipe": {
-          "title": "string",
+          "title": string,
           "metadata": {
-            "yield": "string",
-            "prepTime": "string",
-            "cookTime": "string",
-            "totalTime": "string"
+            "yield": string,
+            "prepTime": string,
+            "cookTime": string,
+            "totalTime": string
           },
-          "description": "string",
+          "description": string,
           "ingredients": {
             "items": [
               {
-                "text": "string",
+                "text": string,
                 "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
               }
             ]
@@ -225,20 +225,21 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
           "instructions": {
             "items": [
               {
-                "text": "string",
+                "text": string,
                 "completed": boolean,
                 "current": boolean,
-                "notes": ["string"],
+                "notes": string[],
                 "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
+                "image": string
               }
             ]
           },
           "notes": [
             {
-              "title": "string",
+              "title": string,
               "content": [
                 {
-                  "text": "string",
+                  "text": string,
                   "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
                 }
               ]
@@ -246,7 +247,7 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
           ]
         },
         "summary": {
-          "content": "string"
+          "content": string
         }
       }
       

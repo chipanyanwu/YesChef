@@ -35,7 +35,7 @@ export interface ListItem {
 export interface InstructionItem extends ListItem {
   completed: boolean
   current: boolean
-  notes?: string[]
+  image: string
 }
 
 export interface Note {

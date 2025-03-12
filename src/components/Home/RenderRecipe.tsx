@@ -109,15 +109,6 @@ export default function RenderRecipe() {
       return (
         <li key={idx} className={liClass}>
           {renderTextContent({ text: item.text, marks: item.marks || [] })}
-          {item.notes && item.notes.length > 0 && (
-            <div className="instruction-notes flex flex-col gap-1 p-2 bg-gray-50">
-              {item.notes.map((note, nIdx) => (
-                <p key={nIdx} className="italic text-gray-700">
-                  {note}
-                </p>
-              ))}
-            </div>
-          )}
         </li>
       )
     }
