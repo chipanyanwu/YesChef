@@ -6,10 +6,12 @@ import { Button } from "../ui/button"
 import { Textarea } from "../ui/textarea"
 import { ChatBubble } from "./ChatBubble"
 import VoiceControl from "./VoiceControl"
+import SpeechRecognition from 'react-speech-recognition';
 
 export const ChatWindow = () => {
   const [inputContent, setInputContent] = useState("")
   const [generationState, setGenerationState] = useState(false)
+  const [isChefSpeaking, setIsChefSpeaking] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const endOfMessagesRef = useRef<HTMLDivElement>(null)
   const {
@@ -23,7 +25,6 @@ export const ChatWindow = () => {
 
   useEffect(() => {
     if (inputRef.current) {
-      inputRef.current.style.height = "auto"
       inputRef.current.style.height = "auto"
       inputRef.current.style.height = `${Math.min(
         inputRef.current.scrollHeight,
@@ -49,6 +50,11 @@ export const ChatWindow = () => {
       const utterance = new SpeechSynthesisUtterance(message)
       utterance.voice = voices[1] || voices[0]
       utterance.lang = "en-US"
+      setIsChefSpeaking(true) 
+      utterance.onend = () => {
+        setIsChefSpeaking(false)
+        SpeechRecognition.startListening({ continuous: true });
+      }
       window.speechSynthesis.speak(utterance)
     } else {
       console.warn("Speech synthesis API not supported in this browser.")
@@ -138,7 +144,7 @@ export const ChatWindow = () => {
         <VoiceControl
           onTranscription={handleInputChange}
           onSubmit={handleVoiceSubmit}
-          disabled={generationState}
+          disabled={generationState || isChefSpeaking}
         />
         <Button
           variant="default"
