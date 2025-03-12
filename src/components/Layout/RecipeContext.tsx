@@ -8,6 +8,7 @@ import {
   useCallback,
   useMemo,
 } from "react"
+import { getPhoto } from "@/lib/unsplash"
 
 interface RecipeContextType {
   rawRecipe: RecipeResponse | null
@@ -58,9 +59,43 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   const updateRecipe = useCallback(
-    (newRecipe: RecipeResponse) => {
+    async (newRecipe: RecipeResponse) => {
       setPrevRecipe(rawRecipe)
-      setRawRecipe(newRecipe)
+      const instructions = newRecipe.recipe.instructions.items
+
+      const updatedInstructions = await Promise.all(
+        instructions.map(async (instruction) => {
+          if (instruction.isQuery) {
+            console.log(instruction.image)
+            const photoLinks = await getPhoto(instruction.image)
+            if (photoLinks) {
+              return {
+                ...instruction,
+                image: photoLinks.urls.regular,
+                isQuery: false,
+              }
+            } else {
+              return instruction
+            }
+          } else {
+            return instruction
+          }
+        })
+      )
+
+      const updatedRecipe = {
+        ...newRecipe,
+        recipe: {
+          ...newRecipe.recipe,
+          instructions: {
+            ...newRecipe.recipe.instructions,
+            items: updatedInstructions,
+          },
+        },
+      }
+
+      console.log(updatedRecipe)
+      setRawRecipe(updatedRecipe)
     },
     [rawRecipe]
   )

@@ -36,6 +36,7 @@ export interface InstructionItem extends ListItem {
   completed: boolean
   current: boolean
   image: string
+  isQuery?: boolean
 }
 
 export interface Note {
