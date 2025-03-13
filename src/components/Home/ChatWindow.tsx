@@ -48,9 +48,13 @@ export const ChatWindow = () => {
   const speakMessage = useCallback(
     (message: string) => {
       if ("speechSynthesis" in window) {
+        if (listening) {
+          SpeechRecognition.stopListening()
+        }
+
         const voices = window.speechSynthesis.getVoices()
         const utterance = new SpeechSynthesisUtterance(message)
-        utterance.voice = voices[1]
+        utterance.voice = voices[0]
         utterance.lang = "en-US"
         setIsChefSpeaking(true)
         utterance.onend = () => {
