@@ -1,9 +1,17 @@
 import RenderRecipe from "@/components/Home/RenderRecipe"
 import { useRecipe } from "@/components/Layout/RecipeContext"
 import { ChatWindow } from "../components/Home/ChatWindow"
+import { ImageWindow } from "@/components/Home/ImageWindow"
 
 function Home() {
-  const { isInit, showRendering } = useRecipe()
+  const {
+    isInit,
+    showRendering,
+    showImage,
+    setShowImage,
+    currentImage,
+    currentInstruction,
+  } = useRecipe()
 
   return (
     <div
@@ -41,6 +49,14 @@ function Home() {
         <div className="recipe-section surrounding-shadow col-start-3 col-end-7 row-span-full max-h-full overflow-y-auto border bg-white p-4 pl-10 pt-8 rounded-md animate-fadeIn">
           <RenderRecipe />
         </div>
+      )}
+
+      {showImage && (
+        <ImageWindow
+          src={currentImage}
+          title={`Step ${currentInstruction + 1}`}
+          onClose={() => setShowImage(false)}
+        />
       )}
     </div>
   )

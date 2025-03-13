@@ -7,8 +7,8 @@ import {
   useState,
   useCallback,
   useMemo,
+  useEffect,
 } from "react"
-// import { getPhoto } from "@/lib/unsplash"
 import { googleImageSearch } from "@/lib/googleImageSearch"
 
 interface RecipeContextType {
@@ -21,6 +21,10 @@ interface RecipeContextType {
   callInit: () => void
   showRendering: boolean
   isInit: boolean
+  showImage: boolean
+  setShowImage: React.Dispatch<React.SetStateAction<boolean>>
+  currentImage: string
+  currentInstruction: number
 }
 
 const RecipeContext = createContext<RecipeContextType>({
@@ -33,6 +37,10 @@ const RecipeContext = createContext<RecipeContextType>({
   callInit: () => {},
   showRendering: false,
   isInit: true,
+  showImage: false,
+  setShowImage: () => {},
+  currentImage: "",
+  currentInstruction: -1,
 })
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -44,6 +52,9 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
   const [isInit, setIsInit] = useState(true)
   const [showRendering, setShowRendering] = useState(false)
+  const [showImage, setShowImage] = useState(false)
+  const [currentImage, setCurrentImage] = useState("")
+  const [currentInstruction, setCurrentInstruction] = useState(-1)
 
   const delay = (ms: number) =>
     new Promise<void>((resolve) => setTimeout(resolve, ms))
@@ -62,6 +73,7 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
   const updateRecipe = useCallback(
     async (newRecipe: RecipeResponse) => {
       setPrevRecipe(rawRecipe)
+
       const instructions = newRecipe.recipe.instructions.items
 
       const updatedInstructions = await Promise.all(
@@ -95,11 +107,31 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
         },
       }
 
-      console.log(updatedRecipe)
       setRawRecipe(updatedRecipe)
     },
     [rawRecipe]
   )
+
+  useEffect(() => {
+    if (rawRecipe) {
+      const instructions = rawRecipe.recipe.instructions.items
+      const currentIndex = instructions.findIndex(
+        (instruction) => instruction.current
+      )
+
+      if (currentIndex !== -1) {
+        setCurrentInstruction(currentIndex)
+
+        const currInstruction = instructions[currentIndex]
+        if (!currInstruction.isQuery && currInstruction.image) {
+          setCurrentImage(currInstruction.image)
+          setShowImage(true)
+        }
+      } else {
+        setShowImage(false)
+      }
+    }
+  }, [rawRecipe])
 
   const value = useMemo(
     () => ({
@@ -112,6 +144,10 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
       callInit,
       showRendering,
       isInit,
+      showImage,
+      setShowImage,
+      currentImage,
+      currentInstruction,
     }),
     [
       rawRecipe,
@@ -122,6 +158,10 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
       callInit,
       showRendering,
       isInit,
+      showImage,
+      setShowImage,
+      currentImage,
+      currentInstruction,
     ]
   )
 

@@ -157,15 +157,15 @@ function generatePrompt(
       - Change the dish
         - The user is NOT allowed to change recipe to an entirely different dish, the user can only change the current recipe within reason. If they ask you to change the recipe, simply tell them to start a new session even though the question still pertains to cooking (tell them in the summary).
       
-      5. If you modify any instructions in the recipe, be sure to replace the "image" field of those instructions to contain a search query that will be used to fetch an image related to that step.
+      5. If you modify the content of any instructions (the "text" field) in the recipe (due to a change the user asked for), be sure to replace the "image" field of those instructions to contain a search query that will be used to fetch an image related to that step.
          Also make sure to set the "isQuery" field to true.
-         Also keep in mind, this step only applies to instructions that haven't been completed yet (instructions where "completed" is set to false)
+         Also keep in mind, you should only change an instructions "isQuery" field from false to true if it is the current instruction or a future one
+         If you didn't change the content of the instruction (the "text"), DO NOT change the "isQuery" field from false to true
          Remember the following when generating a search query:
          - Each search query should be simple, yet specific
          - Keep in mind, the query you assign to each instruction will be used to find a related image on Google Images.
            So make sure the query you generate is likely to get an associated image.
          - The "image" field will be replaced with a link to the image fetched from Google Images.
-         - You should also set the "isQuery" field to true for all instructions
 
       6. Response format MUST be:
         {

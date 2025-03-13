@@ -4,6 +4,7 @@ const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY
 const CX = import.meta.env.VITE_GOOGLE_SEARCH_ENGINE_ID
 
 const BLOCKED_DOMAINS = ["instagram.com", "facebook.com", "tiktok.com"]
+// Pinterest? Reddit?
 
 interface SearchResponse {
   displayLink: string
