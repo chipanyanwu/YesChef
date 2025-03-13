@@ -46,6 +46,7 @@ export const ChatWindow = () => {
 
   const speakMessage = useCallback((message: string) => {
     if ("speechSynthesis" in window) {
+      SpeechRecognition.stopListening();
       const voices = window.speechSynthesis.getVoices()
       const utterance = new SpeechSynthesisUtterance(message)
       utterance.voice = voices[1] || voices[0]
