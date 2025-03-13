@@ -129,9 +129,16 @@ export const ChatWindow = () => {
             <ChatBubble message={chatMsg} key={idx} />
           ))
         ) : (
-          <p className="text-center w-full mt-5">
-            Paste a recipe, or start asking Chef some questions!
-          </p>
+          <>
+            <p className="text-center w-full mt-5 font-bold">
+              Welcome to YesChef! Paste a recipe page (all ads and pictures
+              included) to get started.
+            </p>
+            <p className="text-center w-full">
+              YesChef! will start a user session and guide you through the
+              recipe, one step at a time.
+            </p>
+          </>
         )}
         {generationState && <ChatBubble loading key="loading" />}
         <div ref={endOfMessagesRef} />
