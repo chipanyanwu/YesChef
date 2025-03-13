@@ -6,9 +6,10 @@ import { Button } from "../ui/button"
 import { Textarea } from "../ui/textarea"
 import { ChatBubble } from "./ChatBubble"
 import VoiceControl from "./VoiceControl"
-import SpeechRecognition from 'react-speech-recognition';
+import SpeechRecognition from "react-speech-recognition"
 
 export const ChatWindow = () => {
+  const [listening, setListening] = useState<boolean>(false)
   const [inputContent, setInputContent] = useState("")
   const [generationState, setGenerationState] = useState(false)
   const [isChefSpeaking, setIsChefSpeaking] = useState(false)
@@ -44,22 +45,27 @@ export const ChatWindow = () => {
     setInputContent(value)
   }, [])
 
-  const speakMessage = useCallback((message: string) => {
-    if ("speechSynthesis" in window) {
-      const voices = window.speechSynthesis.getVoices()
-      const utterance = new SpeechSynthesisUtterance(message)
-      utterance.voice = voices[1] || voices[0]
-      utterance.lang = "en-US"
-      setIsChefSpeaking(true) 
-      utterance.onend = () => {
-        setIsChefSpeaking(false)
-        SpeechRecognition.startListening({ continuous: true });
+  const speakMessage = useCallback(
+    (message: string) => {
+      if ("speechSynthesis" in window) {
+        const voices = window.speechSynthesis.getVoices()
+        const utterance = new SpeechSynthesisUtterance(message)
+        utterance.voice = voices[1]
+        utterance.lang = "en-US"
+        setIsChefSpeaking(true)
+        utterance.onend = () => {
+          setIsChefSpeaking(false)
+          if (listening) {
+            SpeechRecognition.startListening({ continuous: true })
+          }
+        }
+        window.speechSynthesis.speak(utterance)
+      } else {
+        console.warn("Speech synthesis API not supported in this browser.")
       }
-      window.speechSynthesis.speak(utterance)
-    } else {
-      console.warn("Speech synthesis API not supported in this browser.")
-    }
-  }, [])
+    },
+    [listening]
+  )
 
   const handleInputSubmit = useCallback(
     async (overrideText?: string) => {
@@ -142,6 +148,8 @@ export const ChatWindow = () => {
           onKeyDown={handleKeyDown}
         />
         <VoiceControl
+          isListening={listening}
+          toggleListening={() => setListening((prev) => !prev)}
           onTranscription={handleInputChange}
           onSubmit={handleVoiceSubmit}
           disabled={generationState || isChefSpeaking}
