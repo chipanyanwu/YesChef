@@ -8,7 +8,8 @@ import {
   useCallback,
   useMemo,
 } from "react"
-import { getPhoto } from "@/lib/unsplash"
+// import { getPhoto } from "@/lib/unsplash"
+import { googleImageSearch } from "@/lib/googleImageSearch"
 
 interface RecipeContextType {
   rawRecipe: RecipeResponse | null
@@ -66,12 +67,12 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
       const updatedInstructions = await Promise.all(
         instructions.map(async (instruction) => {
           if (instruction.isQuery) {
-            console.log(instruction.image)
-            const photoLinks = await getPhoto(instruction.image)
+            const query = instruction.image
+            const photoLinks = await googleImageSearch(query)
             if (photoLinks) {
               return {
                 ...instruction,
-                image: photoLinks.urls.regular,
+                image: photoLinks[0],
                 isQuery: false,
               }
             } else {

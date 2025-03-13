@@ -159,12 +159,12 @@ function generatePrompt(
       
       5. If you modify any instructions in the recipe, be sure to replace the "image" field of those instructions to contain a search query that will be used to fetch an image related to that step.
          Also make sure to set the "isQuery" field to true.
+         Also keep in mind, this step only applies to instructions that haven't been completed yet (instructions where "completed" is set to false)
          Remember the following when generating a search query:
-         - Each search query should be simple
-         - For example, if the step is preheating the oven, the query should simply be "oven"
-         - Keep in mind, the query you assign to each instruction will be used to find a related image on the image discovery service Unsplash.
+         - Each search query should be simple, yet specific
+         - Keep in mind, the query you assign to each instruction will be used to find a related image on Google Images.
            So make sure the query you generate is likely to get an associated image.
-         - The "image" field will be replaced with a link to the image fetched from Unsplash.
+         - The "image" field will be replaced with a link to the image fetched from Google Images.
          - You should also set the "isQuery" field to true for all instructions
 
       6. Response format MUST be:
@@ -268,11 +268,10 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
       - The first instruction must have "current": true and all instructions should have "completed": false initially.
       - Preserve the original recipe text verbatim.
       - For your first response ("summary" field), make sure to mention the first step of the recipe.
-      - For each instruction, the "image" field should be filled with a simple search query that will be used to find an image relevant to that step
-        - For example, if the step is preheating the oven, the query should simply be "oven"
-        - Keep in mind, the query you assign to each instruction will be used to find a related image on the image discovery service Unsplash.
-          So make sure the query you generate is likely to get an associated image.
-        - The "image" field will be replaced with a link to the image fetched from Unsplash.
+      - For each instruction, the "image" field should be filled with a simple, yet specific search query that will be used to find an image relevant to that step
+        - Keep in mind, the query you assign to each instruction will be used to find a related image on Google Images.
+          So make sure the query you generate is likely to get a relevant image.
+        - The "image" field will be replaced with a link to the image fetched from Google Images.
         - You should also set the "isQuery" field to true for all instructions
       - Do not include unsafe content.
       
