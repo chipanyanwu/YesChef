@@ -25,7 +25,11 @@ jobs:
 
       - name: 🧱 Inject Environment Variables
         run: |
+          touch .env
           echo "VITE_GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
+          echo "VITE_GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" >> .env
+          echo "VITE_GOOGLE_SEARCH_ENGINE_ID=${{ secrets.GOOGLE_SEARCH_ENGINE_ID }}" >> .env
+          cat .env
 
       - name: 🧱 Build Project
         run: npm run build
