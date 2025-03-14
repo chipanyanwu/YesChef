@@ -71,44 +71,46 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   const updateRecipe = useCallback(
-    async (newRecipe: RecipeResponse) => {
+    (newRecipe: RecipeResponse) => {
       setPrevRecipe(rawRecipe)
+      setRawRecipe(newRecipe)
 
-      const instructions = newRecipe.recipe.instructions.items
-
-      const updatedInstructions = await Promise.all(
-        instructions.map(async (instruction) => {
-          if (instruction.isQuery && typeof instruction.image == "string") {
+      newRecipe.recipe.instructions.items.forEach(
+        async (instruction, index) => {
+          if (instruction.isQuery && typeof instruction.image === "string") {
             const query = instruction.image
             const photoLinks = await googleImageSearch(query)
-            if (photoLinks) {
+            if (photoLinks && photoLinks.length > 0) {
               photoLinks.push("https://placehold.co/300x200")
-              return {
-                ...instruction,
-                image: photoLinks,
-                isQuery: false,
-              }
-            } else {
-              return instruction
+              setRawRecipe((prevRecipe) => {
+                if (!prevRecipe) return prevRecipe
+
+                const updatedItems = prevRecipe.recipe.instructions.items.map(
+                  (item, i) =>
+                    i === index
+                      ? {
+                          ...item,
+                          image: photoLinks,
+                          isQuery: false,
+                        }
+                      : item
+                )
+
+                return {
+                  ...prevRecipe,
+                  recipe: {
+                    ...prevRecipe.recipe,
+                    instructions: {
+                      ...prevRecipe.recipe.instructions,
+                      items: updatedItems,
+                    },
+                  },
+                }
+              })
             }
-          } else {
-            return instruction
           }
-        })
+        }
       )
-
-      const updatedRecipe = {
-        ...newRecipe,
-        recipe: {
-          ...newRecipe.recipe,
-          instructions: {
-            ...newRecipe.recipe.instructions,
-            items: updatedInstructions,
-          },
-        },
-      }
-
-      setRawRecipe(updatedRecipe)
     },
     [rawRecipe]
   )
