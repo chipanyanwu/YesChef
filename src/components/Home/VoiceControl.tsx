@@ -6,15 +6,21 @@ import { Button } from "../ui/button"
 import { useEffect, useRef } from "react"
 
 interface VoiceControlProps {
+  isListening: boolean
+  toggleListening: () => void
   onTranscription: (spokenText: string) => void
-  disabled: boolean
   onSubmit: (transcribedText: string) => void
+  disabled: boolean
+  continuous?: boolean
 }
 
 const VoiceControl = ({
+  isListening,
+  toggleListening,
   onTranscription,
-  disabled,
   onSubmit,
+  disabled,
+  continuous = true,
 }: VoiceControlProps) => {
   const {
     transcript,
@@ -22,8 +28,48 @@ const VoiceControl = ({
     resetTranscript,
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition()
+  const debounceTimerRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (continuous) {
+      if (isListening && !listening) {
+        resetTranscript()
+        SpeechRecognition.startListening({ continuous: continuous })
+      } else if (!isListening && listening) {
+        SpeechRecognition.stopListening()
+      }
+    }
+  }, [continuous, isListening, listening, resetTranscript])
+
+  useEffect(() => {
+    if (listening) {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = window.setTimeout(() => {
+        if (transcript.trim() !== "") {
+          onSubmit(transcript)
+          resetTranscript()
+        }
+      }, 2000)
+    }
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    }
+  }, [transcript, listening, onSubmit, resetTranscript])
+
+  useEffect(() => {
+    if (listening) {
+      onTranscription(transcript)
+    }
+  }, [listening, onTranscription, transcript])
 
   const toggle = () => {
+    if (disabled) return
+
+    if (continuous) {
+      toggleListening()
+      return
+    }
+
     if (listening) {
       SpeechRecognition.stopListening()
     } else {
@@ -32,27 +78,11 @@ const VoiceControl = ({
     }
   }
 
-  useEffect(() => {
-    if (listening) {
-      onTranscription(transcript)
-    }
-  }, [listening, transcript, onTranscription])
-
-  const prevListeningRef = useRef(listening)
-  useEffect(() => {
-    if (prevListeningRef.current && !listening) {
-      if (transcript.trim() !== "") {
-        onSubmit(transcript)
-      }
-    }
-    prevListeningRef.current = listening
-  }, [listening, transcript, onSubmit])
-
   return (
     <>
       {browserSupportsSpeechRecognition && (
         <Button
-          variant="default"
+          variant={"default"}
           onClick={toggle}
           className="bg-app_teal hover:bg-app_teal_dark h-[60px] w-[15%] object-contain"
           disabled={disabled}

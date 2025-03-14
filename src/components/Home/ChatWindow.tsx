@@ -6,10 +6,13 @@ import { Button } from "../ui/button"
 import { Textarea } from "../ui/textarea"
 import { ChatBubble } from "./ChatBubble"
 import VoiceControl from "./VoiceControl"
+import SpeechRecognition from "react-speech-recognition"
 
 export const ChatWindow = () => {
+  const [listening, setListening] = useState<boolean>(false)
   const [inputContent, setInputContent] = useState("")
   const [generationState, setGenerationState] = useState(false)
+  const [isChefSpeaking, setIsChefSpeaking] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const endOfMessagesRef = useRef<HTMLDivElement>(null)
   const {
@@ -23,7 +26,6 @@ export const ChatWindow = () => {
 
   useEffect(() => {
     if (inputRef.current) {
-      inputRef.current.style.height = "auto"
       inputRef.current.style.height = "auto"
       inputRef.current.style.height = `${Math.min(
         inputRef.current.scrollHeight,
@@ -43,17 +45,31 @@ export const ChatWindow = () => {
     setInputContent(value)
   }, [])
 
-  const speakMessage = useCallback((message: string) => {
-    if ("speechSynthesis" in window) {
-      const voices = window.speechSynthesis.getVoices()
-      const utterance = new SpeechSynthesisUtterance(message)
-      utterance.voice = voices[1] || voices[0]
-      utterance.lang = "en-US"
-      window.speechSynthesis.speak(utterance)
-    } else {
-      console.warn("Speech synthesis API not supported in this browser.")
-    }
-  }, [])
+  const speakMessage = useCallback(
+    (message: string) => {
+      if ("speechSynthesis" in window) {
+        if (listening) {
+          SpeechRecognition.stopListening()
+        }
+
+        const voices = window.speechSynthesis.getVoices()
+        const utterance = new SpeechSynthesisUtterance(message)
+        utterance.voice = voices[0]
+        utterance.lang = "en-US"
+        setIsChefSpeaking(true)
+        utterance.onend = () => {
+          setIsChefSpeaking(false)
+          if (listening) {
+            SpeechRecognition.startListening({ continuous: true })
+          }
+        }
+        window.speechSynthesis.speak(utterance)
+      } else {
+        console.warn("Speech synthesis API not supported in this browser.")
+      }
+    },
+    [listening]
+  )
 
   const handleInputSubmit = useCallback(
     async (overrideText?: string) => {
@@ -117,9 +133,16 @@ export const ChatWindow = () => {
             <ChatBubble message={chatMsg} key={idx} />
           ))
         ) : (
-          <p className="text-center w-full mt-5">
-            Paste a recipe, or start asking Chef some questions!
-          </p>
+          <>
+            <p className="text-center w-full mt-5 font-bold">
+              Welcome to YesChef! Paste a recipe page (all ads and pictures
+              included) to get started.
+            </p>
+            <p className="text-center w-full">
+              YesChef! will start a user session and guide you through the
+              recipe, one step at a time.
+            </p>
+          </>
         )}
         {generationState && <ChatBubble loading key="loading" />}
         <div ref={endOfMessagesRef} />
@@ -136,9 +159,11 @@ export const ChatWindow = () => {
           onKeyDown={handleKeyDown}
         />
         <VoiceControl
+          isListening={listening}
+          toggleListening={() => setListening((prev) => !prev)}
           onTranscription={handleInputChange}
           onSubmit={handleVoiceSubmit}
-          disabled={generationState}
+          disabled={generationState || isChefSpeaking}
         />
         <Button
           variant="default"

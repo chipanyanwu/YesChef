@@ -83,18 +83,18 @@ function generatePrompt(
       1. Edit the recipe JSON based on the user's request using EXACTLY this schema:
       {
         "recipe": {
-          "title": "string",
+          "title": string,
           "metadata": {
-            "yield": "string",
-            "prepTime": "string",
-            "cookTime": "string",
-            "totalTime": "string"
+            "yield": string,
+            "prepTime": string,
+            "cookTime": string,
+            "totalTime": string
           },
-          "description": "string",
+          "description": string,
           "ingredients": {
             "items": [
               {
-                "text": "string",
+                "text": string,
                 "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
               }
             ]
@@ -102,20 +102,22 @@ function generatePrompt(
           "instructions": {
             "items": [
               {
-                "text": "string",
+                "text": string,
                 "completed": boolean,
                 "current": boolean,
-                "notes": ["string"],
+                "notes": string[],
                 "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
+                "image": string | string[]
+                "isQuery": boolean
               }
             ]
           },
           "notes": [
             {
-              "title": "string",
+              "title": string,
               "content": [
                 {
-                  "text": "string",
+                  "text": string,
                   "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
                 }
               ]
@@ -123,7 +125,7 @@ function generatePrompt(
           ]
         },
         "summary": {
-          "content": "string"
+          "content": string
         }
       }
       
@@ -145,9 +147,10 @@ function generatePrompt(
 
       4. The user might ask you to:
       - Substitute certain ingredients
-        - If the user explicitly asks you for a substitution for an ingredient or simply says that they don't have an ingredient, modify that ingredient accordingly
+        - If the user explicitly asks you for a substitution for an ingredient or simply says that they don't have an ingredient, modify that ingredient and related instructions accordingly
+        - Also, the user might tell you that they don't have a certain ingredient. If they tell you this, make a substitution as outlined above.
       - Change measurements or portions
-        - The user may ask you to change the amount of a certain ingredient or change the portion size of the entire recipe, modify the ingredient(s) accordingly
+        - The user may ask you to change the amount of a certain ingredient or change the portion size of the entire recipe, modify the ingredient(s)/instruction(s) accordingly
       - Give information about ingredients
         - Feel free to answer any quesions the user has about ingredients in the recipe
       - Give information about the recipe
@@ -155,7 +158,19 @@ function generatePrompt(
       - Change the dish
         - The user is NOT allowed to change recipe to an entirely different dish, the user can only change the current recipe within reason. If they ask you to change the recipe, simply tell them to start a new session even though the question still pertains to cooking (tell them in the summary).
       
-      5. Response format MUST be:
+      Remember, if the user asks you to do anything that requires changing the recipe, also make sure to update the recipe metadata!
+
+      5. If you modify the content of any instructions (the "text" field) in the recipe (due to a change the user asked for), be sure to replace the "image" field of those instructions to contain a search query that will be used to fetch an image related to that step.
+         Also make sure to set the "isQuery" field to true.
+         Also keep in mind, you should only change an instructions "isQuery" field from false to true if it is the current instruction or a future one
+         If you didn't change the content of the instruction (the "text"), DO NOT change the "isQuery" field from false to true
+         Remember the following when generating a search query:
+         - Each search query should be simple, yet specific
+         - Keep in mind, the query you assign to each instruction will be used to find a related image on Google Images.
+           So make sure the query you generate is likely to get an associated image.
+         - The "image" field will be replaced with links to images fetched from Google Images.
+
+      6. Response format MUST be:
         {
           "recipe": MODIFIED_RECIPE_JSON,
           "summary": {
@@ -206,18 +221,18 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
       1. Parse any recipe content into standardized JSON format using EXACTLY this 'RecipeResponse' schema:
       {
         "recipe": {
-          "title": "string",
+          "title": string,
           "metadata": {
-            "yield": "string",
-            "prepTime": "string",
-            "cookTime": "string",
-            "totalTime": "string"
+            "yield": string,
+            "prepTime": string,
+            "cookTime": string,
+            "totalTime": string
           },
-          "description": "string",
+          "description": string,
           "ingredients": {
             "items": [
               {
-                "text": "string",
+                "text": string,
                 "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
               }
             ]
@@ -225,20 +240,22 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
           "instructions": {
             "items": [
               {
-                "text": "string",
+                "text": string,
                 "completed": boolean,
                 "current": boolean,
-                "notes": ["string"],
+                "notes": string[],
                 "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
+                "image": string | string[]
+                "isQuery": boolean
               }
             ]
           },
           "notes": [
             {
-              "title": "string",
+              "title": string,
               "content": [
                 {
-                  "text": "string",
+                  "text": string,
                   "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
                 }
               ]
@@ -246,13 +263,19 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
           ]
         },
         "summary": {
-          "content": "string"
+          "content": string
         }
       }
       
       2. Follow these RULES STRICTLY:
       - The first instruction must have "current": true and all instructions should have "completed": false initially.
       - Preserve the original recipe text verbatim.
+      - For your first response ("summary" field), make sure to mention the first step of the recipe.
+      - For each instruction, the "image" field should be filled with a simple, yet specific search query that will be used to find an image relevant to that step
+        - Keep in mind, the query you assign to each instruction will be used to find a related image on Google Images.
+          So make sure the query you generate is likely to get a relevant image.
+        - The "image" field will be replaced with a links to the images fetched from Google Images.
+        - You should also set the "isQuery" field to true for all instructions
       - Do not include unsafe content.
       
       3. Response format MUST be:
