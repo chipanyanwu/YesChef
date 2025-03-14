@@ -148,6 +148,7 @@ function generatePrompt(
       4. The user might ask you to:
       - Substitute certain ingredients
         - If the user explicitly asks you for a substitution for an ingredient or simply says that they don't have an ingredient, modify that ingredient and related instructions accordingly
+        - Also, the user might tell you that they don't have a certain ingredient. If they tell you this, make a substitution as outlined above.
       - Change measurements or portions
         - The user may ask you to change the amount of a certain ingredient or change the portion size of the entire recipe, modify the ingredient(s)/instruction(s) accordingly
       - Give information about ingredients
@@ -157,6 +158,8 @@ function generatePrompt(
       - Change the dish
         - The user is NOT allowed to change recipe to an entirely different dish, the user can only change the current recipe within reason. If they ask you to change the recipe, simply tell them to start a new session even though the question still pertains to cooking (tell them in the summary).
       
+      Remember, if the user asks you to do anything that requires changing the recipe, also make sure to update the recipe metadata!
+
       5. If you modify the content of any instructions (the "text" field) in the recipe (due to a change the user asked for), be sure to replace the "image" field of those instructions to contain a search query that will be used to fetch an image related to that step.
          Also make sure to set the "isQuery" field to true.
          Also keep in mind, you should only change an instructions "isQuery" field from false to true if it is the current instruction or a future one
