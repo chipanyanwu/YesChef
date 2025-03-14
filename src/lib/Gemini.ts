@@ -107,7 +107,7 @@ function generatePrompt(
                 "current": boolean,
                 "notes": string[],
                 "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
-                "image": string
+                "image": string | string[]
                 "isQuery": boolean
               }
             ]
@@ -168,7 +168,7 @@ function generatePrompt(
          - Each search query should be simple, yet specific
          - Keep in mind, the query you assign to each instruction will be used to find a related image on Google Images.
            So make sure the query you generate is likely to get an associated image.
-         - The "image" field will be replaced with a link to the image fetched from Google Images.
+         - The "image" field will be replaced with links to images fetched from Google Images.
 
       6. Response format MUST be:
         {
@@ -245,7 +245,7 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
                 "current": boolean,
                 "notes": string[],
                 "marks": ["em"|"strong"|"sub"|"sup"|"strike"]
-                "image": string
+                "image": string | string[]
                 "isQuery": boolean
               }
             ]
@@ -274,7 +274,7 @@ function generateFirstMessagePrompt(query: string, userData?: User) {
       - For each instruction, the "image" field should be filled with a simple, yet specific search query that will be used to find an image relevant to that step
         - Keep in mind, the query you assign to each instruction will be used to find a related image on Google Images.
           So make sure the query you generate is likely to get a relevant image.
-        - The "image" field will be replaced with a link to the image fetched from Google Images.
+        - The "image" field will be replaced with a links to the images fetched from Google Images.
         - You should also set the "isQuery" field to true for all instructions
       - Do not include unsafe content.
       

@@ -57,9 +57,6 @@ export async function googleImageSearch(query: string): Promise<string[]> {
     const itemLinks = items.map((item: SearchResponse) => item.link)
     const filteredLinks = itemLinks.filter((url) => !isBlockedDomain(url))
 
-    console.log(query)
-    console.log(filteredLinks)
-
     return filteredLinks
   } catch (error) {
     console.error("Error searching Google Images:", error)

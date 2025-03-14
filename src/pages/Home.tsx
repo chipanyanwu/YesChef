@@ -9,7 +9,7 @@ function Home() {
     showRendering,
     showImage,
     setShowImage,
-    currentImage,
+    currentImages,
     currentInstruction,
   } = useRecipe()
 
@@ -53,7 +53,7 @@ function Home() {
 
       {showImage && (
         <ImageWindow
-          src={currentImage}
+          srcList={currentImages}
           title={`Step ${currentInstruction + 1}`}
           onClose={() => setShowImage(false)}
         />

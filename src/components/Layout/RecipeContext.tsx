@@ -23,7 +23,7 @@ interface RecipeContextType {
   isInit: boolean
   showImage: boolean
   setShowImage: React.Dispatch<React.SetStateAction<boolean>>
-  currentImage: string
+  currentImages: string[]
   currentInstruction: number
 }
 
@@ -39,7 +39,7 @@ const RecipeContext = createContext<RecipeContextType>({
   isInit: true,
   showImage: false,
   setShowImage: () => {},
-  currentImage: "",
+  currentImages: [],
   currentInstruction: -1,
 })
 
@@ -53,7 +53,7 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
   const [isInit, setIsInit] = useState(true)
   const [showRendering, setShowRendering] = useState(false)
   const [showImage, setShowImage] = useState(false)
-  const [currentImage, setCurrentImage] = useState("")
+  const [currentImages, setCurrentImages] = useState<string[]>([])
   const [currentInstruction, setCurrentInstruction] = useState(-1)
 
   const delay = (ms: number) =>
@@ -78,13 +78,14 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
 
       const updatedInstructions = await Promise.all(
         instructions.map(async (instruction) => {
-          if (instruction.isQuery) {
+          if (instruction.isQuery && typeof instruction.image == "string") {
             const query = instruction.image
             const photoLinks = await googleImageSearch(query)
             if (photoLinks) {
+              photoLinks.push("https://placehold.co/300x200")
               return {
                 ...instruction,
-                image: photoLinks[0],
+                image: photoLinks,
                 isQuery: false,
               }
             } else {
@@ -123,8 +124,12 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
         setCurrentInstruction(currentIndex)
 
         const currInstruction = instructions[currentIndex]
-        if (!currInstruction.isQuery && currInstruction.image) {
-          setCurrentImage(currInstruction.image)
+        if (
+          !currInstruction.isQuery &&
+          currInstruction.image &&
+          typeof currInstruction.image == "object"
+        ) {
+          setCurrentImages(currInstruction.image)
           setShowImage(true)
         }
       } else {
@@ -146,7 +151,7 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
       isInit,
       showImage,
       setShowImage,
-      currentImage,
+      currentImages,
       currentInstruction,
     }),
     [
@@ -160,7 +165,7 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
       isInit,
       showImage,
       setShowImage,
-      currentImage,
+      currentImages,
       currentInstruction,
     ]
   )

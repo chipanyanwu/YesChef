@@ -5,17 +5,17 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 interface ImageWindowProps {
-  src: string
-  title?: string
+  srcList: string[]
+  title: string
   className?: string
   width?: number
   height?: number
-  onClose?: () => void
+  onClose: () => void
 }
 
 export function ImageWindow({
-  src = "/placeholder.svg?height=300&width=400",
-  title = "Image Window",
+  srcList,
+  title,
   className,
   width = 300,
   height = 200,
@@ -27,6 +27,7 @@ export function ImageWindow({
     y: window.innerHeight - height - 52,
   })
   const [startPos, setStartPos] = useState({ x: 0, y: 0 })
+  const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
     setPosition({
@@ -44,6 +45,12 @@ export function ImageWindow({
     })
   }
 
+  useEffect(() => {
+    if (srcList) {
+      setCurrentIndex(0)
+    }
+  }, [srcList])
+
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return
     e.preventDefault()
@@ -58,6 +65,15 @@ export function ImageWindow({
     setIsDragging(false)
   }
 
+  const handleImageError = () => {
+    if (currentIndex < srcList.length - 1) {
+      setCurrentIndex(currentIndex + 1)
+    } else {
+      console.error("All images failed to load")
+      onClose()
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -69,7 +85,7 @@ export function ImageWindow({
         top: position.y,
         left: position.x,
         width: width,
-        height: height + 32, // Add header height
+        height: height + 32,
       }}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -93,7 +109,8 @@ export function ImageWindow({
       </div>
       <div className="relative w-full h-full">
         <img
-          src={src || "/placeholder.svg"}
+          src={srcList[currentIndex] || "https://placehold.co/300x200"}
+          onError={handleImageError}
           className="w-full h-full object-cover"
         />
       </div>
