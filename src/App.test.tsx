@@ -4,16 +4,10 @@ import App from "./App"
 
 window.HTMLElement.prototype.scrollIntoView = function () {}
 
-describe("counter tests", () => {
-  test("Counter should be 0 at the start", () => {
+describe("does page load", () => {
+  test("loading", () => {
     render(<App />)
-    expect(screen.getByText("count is: 0")).toBeDefined()
+    expect(screen.getByText("Welcome to YesChef! Paste a recipe page (all ads and pictures included) to get started.")).toBeDefined()
   })
 
-  test("Counter should increment by one when clicked", async () => {
-    render(<App />)
-    const counter = screen.getByRole("button")
-    fireEvent.click(counter)
-    expect(await screen.getByText("count is: 1")).toBeDefined()
-  })
 })
