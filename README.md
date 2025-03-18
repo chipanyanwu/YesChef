@@ -171,7 +171,8 @@ See the [open issues](https://github.com/chipanyanwu/YesChef/issues) for a full 
 
 
 
-<!-- LICENSE -->## License
+<!-- LICENSE -->
+## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
