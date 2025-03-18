@@ -127,7 +127,7 @@ Features:
    ```sh
    npm install
    ```
-4. Create a `.env` and enter your API.
+4. Create a `.env` and enter your API key.
    ```js
    VITE_GEMINI_API_KEY=<ENTER YOUR API>
    ```
