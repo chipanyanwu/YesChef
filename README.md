@@ -85,7 +85,20 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://yes-chef-e36a7.web.app/)
 
-Here's a blank template to get started. To avoid retyping too much info, do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`, `project_license`
+YesChef is an innovative website and app designed to assist users in the kitchen by providing hands-free cooking guidance. With voice input and output, users can interact with the app without touching a screen or keyboard—perfect for when their hands are dirty from cooking. Whether you're a beginner or an experienced chef, YesChef makes cooking easier and more efficient. A screenshot is shown above!
+
+Features:
+
+* Voice Control: Ask for step-by-step instructions or clarifications without touching your device.
+* Hands-Free Operation: Voice input and output keep your hands free for cooking.
+* Interactive Recipe Guidance: Get real-time feedback and highlights of the current cooking step.
+* Ingredient List: View ingredients clearly and check them off as you go.
+* Cooking and Prep Times: See how long each step and the overall recipe will take.
+* Image Assistance: View images for extra clarification, ensuring you understand each step clearly.
+* Standardized Recipe Display: Recipes are beautifully formatted into a clean, user-friendly HTML page, making them easy to follow.
+* YesChef is the perfect cooking companion for those who want to focus on the art of cooking without constantly needing to touch or scroll through a device.
+
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -120,7 +133,7 @@ This is an example of how to list things you need to use the software and how to
 
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
+1. Get a Gemini API key at Google AI Studio ([API key docs](https://ai.google.dev/gemini-api/docs/api-key))
 2. Clone the repo
    ```sh
    git clone https://github.com/chipanyanwu/YesChef.git
@@ -129,16 +142,16 @@ This is an example of how to list things you need to use the software and how to
    ```sh
    npm install
    ```
-4. Enter your API in `config.js`
+4. Create a `.env` and enter your API.
    ```js
-   const API_KEY = 'ENTER YOUR API';
+   VITE_GEMINI_API_KEY=<ENTER YOUR API>
    ```
-5. Change git remote url to avoid accidental pushes to base project
+5. Check that it's working by locally hosting it
    ```sh
+   npm run dev
    git remote set-url origin chipanyanwu/YesChef
    git remote -v # confirm the changes
    ```
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -195,25 +208,18 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
-
-Project Link: [https://github.com/chipanyanwu/YesChef](https://github.com/chipanyanwu/YesChef)
+Chip Anyanwu - chibuezeanyanwu2025@u.northwestern.edu
+Brooks Hu - brookshu2026@u.northwestern.edu
+Davi Maciel - davimacieldias2025@u.northwestern.edu
+Theo Maurino - theomaurino2026@u.northwestern.edu
+Nick Qiu - nicholasqiu2026@u.northwestern.edu
+Yindi Zhao - yindizhao2026@u.northwestern.edu
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-* []()
-* []()
-* []()
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
