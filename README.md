@@ -118,19 +118,6 @@ Features:
 
 
 <!-- GETTING STARTED -->
-## Getting Started
-
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
-
-### Prerequisites
-
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
 ### Installation
 
 1. Get a Gemini API key at Google AI Studio ([API key docs](https://ai.google.dev/gemini-api/docs/api-key))
@@ -149,8 +136,6 @@ This is an example of how to list things you need to use the software and how to
 5. Check that it's working by locally hosting it
    ```sh
    npm run dev
-   git remote set-url origin chipanyanwu/YesChef
-   git remote -v # confirm the changes
    ```
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -163,14 +148,16 @@ This is an example of how to list things you need to use the software and how to
 1. **Start Session**: Say or type "YesChef, give me a recipe for chocolate chip cookie" or type your recipe
 2. **Cooking Mode**: Follow step-by-step instructions
 
-<!-- ![Recipe Generation Demo](public/demo/recipe-generation.gif) -->
+Note that image functionality is not merged into main.
 
 ## Roadmap
 
 - [x] Core recipe generation functionality
 - [x] Voice command integration
 - [x] Image generation
-- [ ] Paste recipe from social media
+- [ ] Integrated timers
+- [ ] "Hey Siri"-style voice activation
+- [ ] Pulling recipes from social media
 
 See the [open issues](https://github.com/chipanyanwu/YesChef/issues) for a full list of proposed features (and known issues).
 
@@ -217,9 +204,6 @@ Davi Maciel - davimacieldias2025@u.northwestern.edu
 Theo Maurino - theomaurino2026@u.northwestern.edu
 Nick Qiu - nicholasqiu2026@u.northwestern.edu
 Yindi Zhao - yindizhao2026@u.northwestern.edu
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
