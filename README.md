@@ -71,10 +71,8 @@
     </li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
 
@@ -148,18 +146,16 @@ Features:
 1. **Start Session**: Say or type "YesChef, give me a recipe for chocolate chip cookie" or type/paste in your recipe
 2. **Cooking Mode**: Follow step-by-step instructions
 
-Note that image functionality is not merged into main.
+Note that image functionality is not merged into main. It can be found in the images branch and requires a Google API key and Search Engine ID to be set as `VITE_GOOGLE_API_KEY`, `VITE_GOOGLE_SEARCH_ENGINE_ID` in `.env`.
 
 ## Roadmap
 
 - [x] Core recipe generation functionality
 - [x] Voice command integration
-- [x] Image generation
+- [x] Image generation (not merged into main)
 - [ ] Integrated timers
 - [ ] "Hey Siri"-style voice activation
 - [ ] Pulling recipes from social media
-
-See the [open issues](https://github.com/chipanyanwu/YesChef/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -168,8 +164,6 @@ See the [open issues](https://github.com/chipanyanwu/YesChef/issues) for a full 
 <a href="https://github.com/chipanyanwu/YesChef/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=chipanyanwu/YesChef" alt="contrib.rocks image" />
 </a>
-
-
 
 <!-- LICENSE -->
 ## License
